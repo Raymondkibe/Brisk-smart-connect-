@@ -1,0 +1,6 @@
+{
+  "name": "BRISK Smart Connect",
+  "description": "Smart WiFi. Smart Host. Smarter You. The real-world WiFi hotspot and router-management platform for BRISK and independent Router Owners.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
