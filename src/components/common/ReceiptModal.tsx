@@ -27,91 +27,153 @@ export const ReceiptModal: React.FC<ReceiptModalProps> = ({ isOpen, onClose, tra
         </button>
 
         {/* Brand Header */}
-        <div className="text-center pb-5 border-b border-dashed border-slate-300">
-          <div className="inline-flex items-center justify-center w-12 h-12 bg-sky-600 text-white rounded-xl mb-2 shadow-md">
-            <Wifi className="w-6 h-6" />
-          </div>
-          <h2 className="text-lg font-black tracking-tight text-slate-950">BRISK SMART CONNECT</h2>
-          <p className="text-xs text-slate-500 font-medium tracking-wide">
-            Smart WiFi. Smart Host. Smarter You.
-          </p>
-          <div className="inline-block mt-2 px-2.5 py-0.5 bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-semibold rounded-md">
-            OFFICIAL PAYMENT RECEIPT
-          </div>
-        </div>
+        {/* Brand Header */}
+        {(() => {
+          const isPlatformSub = transaction.type === 'ROUTER_OWNER_SUBSCRIPTION';
+          const isPppoe = transaction.type === 'CUSTOMER_PPPOE';
 
-        {/* Receipt Key Info */}
-        <div className="py-4 space-y-3 text-xs">
-          <div className="flex justify-between items-center">
-            <span className="text-slate-500 font-medium">Receipt #:</span>
-            <span className="font-mono font-bold text-slate-900 text-sm">{transaction.receiptNumber}</span>
-          </div>
+          return (
+            <>
+              <div className="text-center pb-5 border-b border-dashed border-slate-300">
+                <div
+                  className={`inline-flex items-center justify-center w-12 h-12 text-white rounded-xl mb-2 shadow-md ${
+                    isPlatformSub ? 'bg-amber-600' : 'bg-sky-600'
+                  }`}
+                >
+                  <Wifi className="w-6 h-6" />
+                </div>
+                <h2 className="text-lg font-black tracking-tight text-slate-950">
+                  {isPlatformSub ? 'BRISK SMART CONNECT' : (transaction.ispBusinessName || 'BRISK SMART CONNECT')}
+                </h2>
+                <p className="text-xs text-slate-500 font-medium tracking-wide">
+                  {isPlatformSub
+                    ? 'Cloud ISP Management Software · SaaS Provider'
+                    : 'Smart WiFi & Broadband · Powered by BRISK'}
+                </p>
+                <div
+                  className={`inline-block mt-2 px-2.5 py-0.5 text-xs font-semibold rounded-md border ${
+                    isPlatformSub
+                      ? 'bg-amber-50 text-amber-800 border-amber-200'
+                      : isPppoe
+                      ? 'bg-purple-50 text-purple-800 border-purple-200'
+                      : 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                  }`}
+                >
+                  {isPlatformSub
+                    ? 'PLATFORM SAAS SUBSCRIPTION RECEIPT'
+                    : isPppoe
+                    ? 'HOME / BIZ FIBRE BROADBAND RECEIPT'
+                    : 'HOTSPOT INTERNET ACCESS RECEIPT'}
+                </div>
+              </div>
 
-          <div className="flex justify-between items-center">
-            <span className="text-slate-500 font-medium">Customer:</span>
-            <span className="font-bold text-slate-900">{transaction.userName}</span>
-          </div>
+              {/* Receipt Key Info */}
+              <div className="py-4 space-y-2.5 text-xs">
+                <div className="flex justify-between items-center">
+                  <span className="text-slate-500 font-medium">Receipt #:</span>
+                  <span className="font-mono font-bold text-slate-900 text-sm">{transaction.receiptNumber}</span>
+                </div>
 
-          <div className="flex justify-between items-center">
-            <span className="text-slate-500 font-medium">Package / Service:</span>
-            <span className="font-semibold text-sky-800">{transaction.packageName || 'WiFi Package'}</span>
-          </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-slate-500 font-medium">
+                    {isPlatformSub ? 'ISP Owner / Tenant:' : 'Customer / Subscriber:'}
+                  </span>
+                  <span className="font-bold text-slate-900">{transaction.userName}</span>
+                </div>
 
-          <div className="flex justify-between items-center">
-            <span className="text-slate-500 font-medium">Payment Method:</span>
-            <span className="font-semibold text-slate-800">{transaction.paymentMethod}</span>
-          </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-slate-500 font-medium">Payment Flow:</span>
+                  <span className={`font-semibold ${isPlatformSub ? 'text-amber-800' : 'text-sky-800'}`}>
+                    {isPlatformSub
+                      ? 'Platform SaaS (ISP -> BRISK Software)'
+                      : 'Internet Access (Customer -> ISP Provider)'}
+                  </span>
+                </div>
 
-          <div className="flex justify-between items-center">
-            <span className="text-slate-500 font-medium">Transaction Reference:</span>
-            <span className="font-mono font-semibold text-slate-900 bg-slate-100 px-1.5 py-0.5 rounded">
-              {transaction.reference}
-            </span>
-          </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-slate-500 font-medium">Beneficiary / Payee:</span>
+                  <span className="font-semibold text-slate-900">
+                    {transaction.beneficiaryName ||
+                      (isPlatformSub ? 'BRISK Smart Connect (Platform SaaS)' : 'Kiambu Smart WiFi Networks (ISP)')}
+                  </span>
+                </div>
 
-          {transaction.mpesaPhone && (
-            <div className="flex justify-between items-center">
-              <span className="text-slate-500 font-medium">Phone Number:</span>
-              <span className="font-mono text-slate-700">{transaction.mpesaPhone}</span>
-            </div>
-          )}
+                <div className="flex justify-between items-center">
+                  <span className="text-slate-500 font-medium">Destination Account:</span>
+                  <span className="font-mono font-medium text-slate-800">
+                    {transaction.recipientAccount ||
+                      (isPlatformSub ? 'BRISK Platform Paybill 408801' : 'ISP Hotspot Till 882194')}
+                  </span>
+                </div>
 
-          <div className="flex justify-between items-center">
-            <span className="text-slate-500 font-medium">Date & Time:</span>
-            <span className="text-slate-700">
-              {new Date(transaction.createdAt).toLocaleString('en-KE', {
-                dateStyle: 'medium',
-                timeStyle: 'short',
-              })}
-            </span>
-          </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-slate-500 font-medium">Package / Service:</span>
+                  <span className="font-semibold text-sky-800">{transaction.packageName || 'WiFi Service'}</span>
+                </div>
 
-          <div className="pt-3 border-t border-dashed border-slate-300 flex justify-between items-center">
-            <span className="text-sm font-bold text-slate-900">Total Amount:</span>
-            <span className="text-xl font-extrabold text-slate-950 font-mono">
-              KES {transaction.amountKes.toLocaleString()}
-            </span>
-          </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-slate-500 font-medium">Payment Method:</span>
+                  <span className="font-semibold text-slate-800">{transaction.paymentMethod}</span>
+                </div>
 
-          <div className="flex justify-between items-center text-emerald-600 font-bold">
-            <span>Status:</span>
-            <span className="flex items-center gap-1">
-              <CheckCircle className="w-4 h-4" /> PAID & ACTIVATED
-            </span>
-          </div>
-        </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-slate-500 font-medium">Transaction Reference:</span>
+                  <span className="font-mono font-semibold text-slate-900 bg-slate-100 px-1.5 py-0.5 rounded">
+                    {transaction.reference}
+                  </span>
+                </div>
 
-        {/* Security & Verification Footer */}
-        <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 text-[11px] text-slate-500 space-y-1">
-          <div className="flex items-center gap-1.5 font-semibold text-slate-700">
-            <Shield className="w-3.5 h-3.5 text-sky-600" />
-            <span>Cryptographically Verified Hotspot Receipt</span>
-          </div>
-          <p>
-            Retain this receipt for session restoration or support queries. Direct inquiries to{' '}
-            <span className="text-sky-700 font-medium">support@briskconnect.co.ke</span>.
-          </p>
-        </div>
+                {transaction.mpesaPhone && (
+                  <div className="flex justify-between items-center">
+                    <span className="text-slate-500 font-medium">Phone Number:</span>
+                    <span className="font-mono text-slate-700">{transaction.mpesaPhone}</span>
+                  </div>
+                )}
+
+                <div className="flex justify-between items-center">
+                  <span className="text-slate-500 font-medium">Date & Time:</span>
+                  <span className="text-slate-700">
+                    {new Date(transaction.createdAt).toLocaleString('en-KE', {
+                      dateStyle: 'medium',
+                      timeStyle: 'short',
+                    })}
+                  </span>
+                </div>
+
+                <div className="pt-3 border-t border-dashed border-slate-300 flex justify-between items-center">
+                  <span className="text-sm font-bold text-slate-900">Total Amount:</span>
+                  <span className="text-xl font-extrabold text-slate-950 font-mono">
+                    KES {transaction.amountKes.toLocaleString()}
+                  </span>
+                </div>
+
+                <div className="flex justify-between items-center text-emerald-600 font-bold">
+                  <span>Status:</span>
+                  <span className="flex items-center gap-1">
+                    <CheckCircle className="w-4 h-4" /> PAID & ACTIVATED
+                  </span>
+                </div>
+              </div>
+
+              {/* Security & Verification Footer */}
+              <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 text-[11px] text-slate-500 space-y-1">
+                <div className="flex items-center gap-1.5 font-semibold text-slate-700">
+                  <Shield className="w-3.5 h-3.5 text-sky-600" />
+                  <span>
+                    {isPlatformSub
+                      ? 'Official BRISK SaaS License Receipt'
+                      : 'Cryptographically Verified ISP Internet Access Receipt'}
+                  </span>
+                </div>
+                <p>
+                  {isPlatformSub
+                    ? 'Covers 30 days of multi-tenant MikroTik RouterOS automation, captive portal hosting, and automated M-Pesa billing.'
+                    : 'Keep this receipt for session restoration or support queries. Direct inquiries to support@briskconnect.co.ke.'}
+                </p>
+              </div>
+            </>
+          );
+        })()}
 
         {/* Action Buttons (Print / Close) */}
         <div className="mt-5 grid grid-cols-2 gap-2 print:hidden">

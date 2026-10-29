@@ -2,11 +2,17 @@ import React, { useState, useEffect } from 'react';
 import { Navbar } from './components/common/Navbar.tsx';
 import { LandingPage } from './components/public/LandingPage.tsx';
 import { ExpiredPortal } from './components/public/ExpiredPortal.tsx';
+import { HotspotPortal } from './components/public/HotspotPortal.tsx';
+import { CaptivePortalPage } from './components/public/CaptivePortalPage.tsx';
+import { PppoeCaptivePortal } from './components/public/PppoeCaptivePortal.tsx';
 import { CustomerDashboard } from './components/customer/CustomerDashboard.tsx';
 import { OwnerDashboard } from './components/owner/OwnerDashboard.tsx';
 import { AdminDashboard } from './components/admin/AdminDashboard.tsx';
 import { AboutPage } from './components/public/AboutPage.tsx';
 import { ContactPage } from './components/public/ContactPage.tsx';
+import { PricingPage } from './components/public/PricingPage.tsx';
+import { LoginPage } from './components/auth/LoginPage.tsx';
+import { RegisterPage } from './components/auth/RegisterPage.tsx';
 import { PaymentModal } from './components/common/PaymentModal.tsx';
 import { ReceiptModal } from './components/common/ReceiptModal.tsx';
 import { VoucherModal } from './components/common/VoucherModal.tsx';
@@ -22,14 +28,123 @@ import type {
   Transaction,
 } from './types/index.ts';
 
+import type { OwnerPage } from './components/owner/OwnerDashboard.tsx';
+
+export type AppView =
+  | 'LANDING'
+  | 'PRICING'
+  | 'ABOUT'
+  | 'CONTACT'
+  | 'CUSTOMER'
+  | 'OWNER'
+  | 'ADMIN'
+  | 'EXPIRED'
+  | 'HOTSPOT_PORTAL'
+  | 'PPPOE_PORTAL'
+  | 'LOGIN'
+  | 'REGISTER';
+
+// Detect URL route for dedicated standalone pages and tabs
+const getInitialView = (): AppView => {
+  if (typeof window === 'undefined') return 'LANDING';
+  const path = window.location.pathname.toLowerCase();
+  const search = window.location.search.toLowerCase();
+
+  if (path === '/login' || path === '/signin' || path === '/account') return 'LOGIN';
+  if (path === '/register' || path === '/signup') return 'REGISTER';
+  if (path === '/pricing' || path === '/plans' || path === '/packages') return 'PRICING';
+
+  if (
+    path === '/pppoe-portal' ||
+    path === '/pppoe-client' ||
+    path === '/fiber' ||
+    (path === '/pppoe' && !search.includes('owner') && !search.includes('tab='))
+  ) {
+    return 'PPPOE_PORTAL';
+  }
+
+  if (
+    path === '/portal' ||
+    path === '/hotspot' ||
+    path === '/captive' ||
+    path === '/wifi' ||
+    search.includes('portal') ||
+    search.includes('hotspot') ||
+    search.includes('mac=')
+  ) {
+    return 'HOTSPOT_PORTAL';
+  }
+
+  if (path === '/about') return 'ABOUT';
+  if (path === '/contact') return 'CONTACT';
+  if (
+    path === '/customer' ||
+    path === '/devices' ||
+    path === '/my-devices' ||
+    path === '/support' ||
+    path === '/referrals' ||
+    path === '/transactions'
+  ) {
+    return 'CUSTOMER';
+  }
+
+  if (
+    path === '/owner' ||
+    path === '/dashboard' ||
+    path === '/connect-router' ||
+    path === '/setup-scripts' ||
+    path === '/router-setup-scripts' ||
+    path === '/my-routers' ||
+    path === '/payment-methods' ||
+    path === '/network-management' ||
+    path === '/integrations' ||
+    path === '/pppoe' ||
+    path === '/vouchers' ||
+    path === '/withdrawals' ||
+    path === '/captive-portal' ||
+    path === '/portal-builder'
+  ) {
+    return 'OWNER';
+  }
+
+  if (
+    path === '/admin' ||
+    path === '/admin-dashboard' ||
+    path === '/admin-users' ||
+    path === '/admin-routers' ||
+    path === '/audit' ||
+    path === '/audit-logs'
+  ) {
+    return 'ADMIN';
+  }
+
+  if (path === '/expired') return 'EXPIRED';
+  return 'LANDING';
+};
+
+// Parse initial tab for Router Owner workspace
+const getInitialOwnerTab = (): OwnerPage => {
+  if (typeof window === 'undefined') return 'DASHBOARD';
+  const path = window.location.pathname.toLowerCase();
+  if (path === '/setup-scripts' || path === '/router-setup-scripts') return 'SETUP_SCRIPTS';
+  if (path === '/connect-router' || path === '/easy-connect') return 'EASY_CONNECT';
+  if (path === '/my-routers' || path === '/network-management' || path === '/network') return 'ROUTERS';
+  if (path === '/payment-methods') return 'PAYMENT_METHODS';
+  if (path === '/integrations') return 'INTEGRATIONS';
+  if (path === '/pppoe') return 'PPPOE';
+  if (path === '/vouchers') return 'VOUCHERS';
+  if (path === '/captive-portal' || path === '/portal-builder') return 'CAPTIVE_PORTAL';
+  if (path === '/withdrawals') return 'WITHDRAWALS';
+  return 'DASHBOARD';
+};
+
 export default function App() {
   const [appState, setAppState] = useState<AppState | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // Active view: Landing, About Us, Contact, Customer, Owner, Super Admin, or Expired Hotspot Portal
-  const [currentView, setCurrentView] = useState<
-    'LANDING' | 'ABOUT' | 'CONTACT' | 'CUSTOMER' | 'OWNER' | 'ADMIN' | 'EXPIRED'
-  >('LANDING');
+  // Active view: Standalone Captive Portal has its own dedicated page at /portal, Author at /author
+  const [currentView, setCurrentView] = useState<AppView>(getInitialView);
+  const [ownerInitialTab, setOwnerInitialTab] = useState<OwnerPage>(getInitialOwnerTab);
 
   // Active User session (defaults to Customer or Router Owner for quick preview)
   const [currentUser, setCurrentUser] = useState<User | null>(null);
@@ -55,6 +170,16 @@ export default function App() {
 
   const [voucherModalOpen, setVoucherModalOpen] = useState(false);
   const [hostModalOpen, setHostModalOpen] = useState(false);
+
+  // Sync with browser back/forward buttons
+  useEffect(() => {
+    const onPopState = () => {
+      setCurrentView(getInitialView());
+      setOwnerInitialTab(getInitialOwnerTab());
+    };
+    window.addEventListener('popstate', onPopState);
+    return () => window.removeEventListener('popstate', onPopState);
+  }, []);
 
   // Fetch initial system state from backend
   const loadState = async () => {
@@ -94,10 +219,34 @@ export default function App() {
   }, []);
 
   // When switching views, if the current user role doesn't match the view, adjust active persona smoothly
-  const handleViewChange = (
-    view: 'LANDING' | 'ABOUT' | 'CONTACT' | 'CUSTOMER' | 'OWNER' | 'ADMIN' | 'EXPIRED'
-  ) => {
+  const handleViewChange = (view: AppView, ownerTab?: OwnerPage) => {
     setCurrentView(view);
+    if (ownerTab) {
+      setOwnerInitialTab(ownerTab);
+    }
+
+    // Update browser URL cleanly
+    if (typeof window !== 'undefined') {
+      let targetPath = `/${view.toLowerCase()}`;
+      if (view === 'HOTSPOT_PORTAL') targetPath = '/portal';
+      else if (view === 'PPPOE_PORTAL') targetPath = '/pppoe';
+      else if (view === 'LOGIN') targetPath = '/login';
+      else if (view === 'REGISTER') targetPath = '/register';
+      else if (view === 'LANDING') targetPath = '/';
+      else if (view === 'OWNER') {
+        if (ownerTab === 'SETUP_SCRIPTS') targetPath = '/setup-scripts';
+        else if (ownerTab === 'EASY_CONNECT') targetPath = '/connect-router';
+        else if (ownerTab === 'PAYMENT_METHODS') targetPath = '/payment-methods';
+        else if (ownerTab === 'ROUTERS') targetPath = '/my-routers';
+        else if (ownerTab === 'INTEGRATIONS') targetPath = '/integrations';
+        else targetPath = '/owner';
+      }
+
+      if (window.location.pathname !== targetPath) {
+        window.history.pushState({ view, ownerTab }, '', targetPath);
+      }
+    }
+
     if (!appState) return;
 
     if (view === 'CUSTOMER') {
@@ -125,15 +274,19 @@ export default function App() {
     setAuthModalOpen(true);
   };
 
-  const handleAuthSuccess = (data: { user: User; customerProfile?: any; ownerProfile?: any }) => {
-    setCurrentUser(data.user);
-    if (data.customerProfile) setCustomerProfile(data.customerProfile);
-    if (data.ownerProfile) setOwnerProfile(data.ownerProfile);
+  const handleAuthSuccess = (data: { user: User; customerProfile?: any; ownerProfile?: any } | User) => {
+    const user = 'user' in data ? data.user : data;
+    const cp = 'customerProfile' in data ? data.customerProfile : undefined;
+    const op = 'ownerProfile' in data ? data.ownerProfile : undefined;
+
+    setCurrentUser(user);
+    if (cp) setCustomerProfile(cp);
+    if (op) setOwnerProfile(op);
 
     // Route automatically to user's dashboard
-    if (data.user.role === 'CUSTOMER') setCurrentView('CUSTOMER');
-    else if (data.user.role === 'ROUTER_OWNER') setCurrentView('OWNER');
-    else if (data.user.role === 'SUPER_ADMIN') setCurrentView('ADMIN');
+    if (user.role === 'CUSTOMER') setCurrentView('CUSTOMER');
+    else if (user.role === 'ROUTER_OWNER') setCurrentView('OWNER');
+    else if (user.role === 'SUPER_ADMIN') setCurrentView('ADMIN');
     loadState();
   };
 
@@ -207,6 +360,27 @@ export default function App() {
   const bpEntry = appState?.businessProfiles.find(([uid]) => uid === currentUser?.id);
   const businessProfile = bpEntry ? bpEntry[1] : undefined;
 
+  // DEDICATED CAPTIVE PORTAL PAGE (Clean Standalone Hotspot Experience with No General Navbar)
+  if (currentView === 'HOTSPOT_PORTAL') {
+    return (
+      <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans">
+        <CaptivePortalPage
+          packages={packages}
+          vouchers={vouchers}
+          onReturnHome={() => handleViewChange('LANDING')}
+          onOpenReceipt={handleViewReceipt}
+          onViewCustomerDashboard={() => handleViewChange('CUSTOMER')}
+        />
+
+        <ReceiptModal
+          isOpen={receiptModalOpen}
+          onClose={() => setReceiptModalOpen(false)}
+          transaction={selectedReceipt}
+        />
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans">
       {/* Top Navbar */}
@@ -263,12 +437,49 @@ export default function App() {
           />
         )}
 
+        {currentView === 'LOGIN' && (
+          <LoginPage
+            onLoginSuccess={handleAuthSuccess}
+            onNavigateToRegister={() => handleViewChange('REGISTER')}
+            onBackToHome={() => handleViewChange('LANDING')}
+            onNavigateToPortal={() => handleViewChange('HOTSPOT_PORTAL')}
+          />
+        )}
+
+        {currentView === 'REGISTER' && (
+          <RegisterPage
+            onRegisterSuccess={handleAuthSuccess}
+            onNavigateToLogin={() => handleViewChange('LOGIN')}
+            onBackToHome={() => handleViewChange('LANDING')}
+            onNavigateToPortal={() => handleViewChange('HOTSPOT_PORTAL')}
+          />
+        )}
+
+        {currentView === 'PRICING' && (
+          <PricingPage
+            subscriptionPlans={subscriptionPlans}
+            onSelectPlan={handleSelectPlan}
+            onGoToRegister={() => handleViewChange('REGISTER')}
+            onGoToLogin={() => handleViewChange('LOGIN')}
+            onReturnHome={() => handleViewChange('LANDING')}
+            onGoToPortal={() => handleViewChange('HOTSPOT_PORTAL')}
+            currentPlanId={ownerProfile?.subscriptionPlanId}
+          />
+        )}
+
         {currentView === 'EXPIRED' && (
           <ExpiredPortal
             packages={packages}
             onSelectPackage={handleSelectPackage}
             onOpenVoucher={() => setVoucherModalOpen(true)}
             onReturnHome={() => setCurrentView('LANDING')}
+          />
+        )}
+
+        {currentView === 'PPPOE_PORTAL' && (
+          <PppoeCaptivePortal
+            onBackToHome={() => handleViewChange('LANDING')}
+            onNavigateToLogin={() => handleViewChange('LOGIN')}
           />
         )}
 
@@ -304,8 +515,11 @@ export default function App() {
             businessProfile={businessProfile}
             packages={packages}
             transactions={transactions}
+            withdrawals={withdrawals}
             onActivateSubscription={handleSelectPlan}
             onRefreshState={loadState}
+            onGoToHotspotPortal={() => setCurrentView('HOTSPOT_PORTAL')}
+            initialTab={ownerInitialTab}
           />
         )}
 

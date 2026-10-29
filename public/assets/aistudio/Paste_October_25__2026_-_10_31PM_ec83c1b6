@@ -1,0 +1,1084 @@
+BRISK SMART CONNECT — COMPLETE PRODUCTION BUILD SPECIFICATION
+
+1. PROJECT IDENTITY
+
+Product name: BRISK Smart Connect
+
+Main website: https://brisksmartconnect.vercel.app/
+
+WiFi captive portal: https://wifi.brisk.co.ke/
+
+Tagline: Smart WiFi, smart host, smarter you.
+
+Build a complete, original, multi-tenant ISP and WiFi hotspot management SaaS platform. It should combine customer WiFi access, hotspot billing, router management, subscriptions, M-Pesa payments, voucher authentication, customer support, network monitoring, and administrative controls.
+
+Use Google AI Studio to develop the application and Supabase for authentication, PostgreSQL database, storage, and realtime functionality where appropriate.
+
+Do not merely create a static UI or frontend demonstration. Implement real backend workflows and integrations. If credentials, router hardware, or external services are not configured, show a clear setup status rather than claiming the feature works.
+
+If a project already exists, inspect its code and preserve working pages, branding, database structures, authentication, and integrations. Do not overwrite working functionality without a reason.
+
+2. MAIN WEBSITE AND CAPTIVE PORTAL
+
+Use https://brisksmartconnect.vercel.app/ as the main platform website.
+
+Use https://wifi.brisk.co.ke/ as the customer-facing hotspot portal.
+
+The main website should provide:
+
+- Public homepage and product information.
+- Internet package information.
+- Router-owner registration and login.
+- Customer login and WiFi access.
+- Platform subscription information.
+- Supported router information.
+- Support, contact, terms, and privacy pages.
+- Links to the relevant dashboards after authentication.
+- A router setup page where router owners can generate or copy a vendor-specific installation and configuration script for their router.
+- Clear instructions explaining where and how to paste the generated script, including the required permissions, prerequisites, supported router models and firmware versions, and security warnings.
+- A secure, server-generated script that contains only the configuration required for the selected router, tenant, site, and connection method.
+- A script preview, copy-to-clipboard button, download option, regeneration option, and setup-status indicator.
+- Never include plaintext router passwords, API secrets, M-Pesa credentials, or other sensitive provider credentials in browser-visible scripts.
+- Use short-lived, single-use enrollment tokens or secure outbound-connector tokens when a script must authenticate a router to the platform.
+- Allow the router owner to revoke an issued script or enrollment token before or after installation.
+- Record script generation, download, execution or enrollment, revocation, and setup results in audit logs.
+- Show a clear warning that scripts must be reviewed before execution and should only be pasted into a router owned or authorized by the user.
+- Provide separate scripts or command instructions for supported vendors, such as MikroTik RouterOS, OpenWrt, and supported connector agents. Do not provide a generic script that assumes every router uses the same commands.
+- If automatic script generation is not supported for a specific model, show manual configuration instructions instead of claiming that the script will work.
+
+The captive portal must remain a single-page experience at the same URL. Switching between Buy Data, Voucher, My Account, payment, and connected status must not require separate public portal URLs.
+
+Support a return URL or router-supplied redirect after successful authentication. Validate redirects and allow only trusted destinations.
+
+3. DESIGN SYSTEM
+
+Create a polished, mobile-first interface with:
+
+- Dark navy backgrounds and blue gradients.
+- Cyan and purple accent colors.
+- White and light-grey text.
+- Yellow or blue primary action buttons.
+- Green verified-payment and connected states.
+- Premium glass-style cards, subtle shadows, gradients, and smooth animations.
+- Responsive desktop sidebar and mobile bottom navigation.
+- Real SVG or Lucide icons; do not use emojis as interface icons.
+- Loading skeletons, empty states, error messages, and accessible form labels.
+- Charts and network diagrams using real database data.
+
+Keep the public WiFi portal simple, fast, and easy to use on low-cost Android phones.
+
+4. USER ROLES
+
+Implement role-based permissions for:
+
+Super Admin
+
+- Manage router owners, customers, staff, and platform subscriptions.
+- Manage centrally approved internet packages and prices.
+- Approve, suspend, or reactivate router-owner accounts.
+- Manage all registered routers, access points, and network sites.
+- Review payments, refunds, platform revenue, withdrawals, and commissions.
+- Manage referrals, support tickets, notifications, and audit logs.
+- Monitor integration health and failed router commands.
+- Configure platform-wide security, billing, and branding.
+- View tenant-separated analytics and platform-wide totals.
+- Suspend a compromised router, owner, or customer account.
+- Manage maintenance notices and service availability.
+- Review, approve, revoke, and audit router setup scripts and enrollment tokens.
+- Configure approved script templates, supported vendors, command restrictions, and script expiration policies.
+
+Router Owner
+
+- Register, verify, and activate an owner account.
+- Subscribe to a supported platform plan.
+- Connect and manage their own routers and access points.
+- View connected clients, sessions, traffic, router uptime, and network health.
+- Manage customers, vouchers, payments, receipts, reports, and support.
+- Configure their own M-Pesa, messaging, and email integrations where supported.
+- Configure captive-portal appearance, business details, and support contacts.
+- Select centrally approved internet packages.
+- Manage staff permissions if the subscribed plan supports staff accounts.
+- View revenue, expenses where implemented, platform fees, and withdrawal status.
+- Never access another router owner's private customers, credentials, payments, or network.
+- Generate setup scripts only for routers, sites, and connectors they own or are authorized to manage.
+- Revoke active enrollment tokens and view setup history.
+- Never view secret values embedded in server-side credentials or provider integrations.
+
+Router owners must NOT create, edit, or change the centrally controlled official package prices. They can select which approved packages to offer when platform policy permits.
+
+Customer
+
+- Register and log in.
+- Buy internet using M-Pesa or another enabled payment method.
+- Redeem a valid voucher.
+- View active package, remaining time, available data, and session status.
+- View transactions, receipts, and purchase history.
+- Renew a package.
+- Receive approved payment and expiry notifications.
+- Refer other customers.
+- Contact support.
+- Disconnect their own active session if the router integration supports it.
+
+5. WIFI CAPTIVE PORTAL
+
+Build one portal page containing the following sections.
+
+Header
+
+- BRISK Smart Connect logo and name.
+- “Fast & Secure WiFi Access.”
+- Configured hotspot name and location.
+- Language selector and support link.
+
+Hotspot information card
+
+- WiFi icon.
+- Network name.
+- Owner-configured welcome message.
+- Location and service information.
+- Optional owner-configured background image.
+
+Tabs
+
+1. Buy Data
+2. Voucher
+3. My Account
+
+Change sections inline without navigating away from the portal.
+
+Buy Data
+
+- Load actual available packages from the backend.
+- Display price, duration, speed limit, data allowance, and terms.
+- Allow package selection.
+- Show a clear purchase summary.
+- Collect and validate the customer's Kenyan phone number.
+- Provide a Pay with M-Pesa button when the integration is enabled.
+- Show pending, successful, failed, cancelled, expired, and unknown payment states.
+- Never activate internet merely because the browser displays a success message.
+
+Example design-only package cards:
+
+- KES 30 — 2 hours — 15 Mbps.
+- KES 60 — 12 hours — 20 Mbps.
+- KES 100 — 24 hours — 25 Mbps.
+
+These are sample UI values only. Never treat them as live prices unless the actual package database contains those offers.
+
+Voucher
+
+- Enter voucher code.
+- Validate voucher against the backend.
+- Confirm its validity, expiry, permitted usage, and assigned package.
+- Redeem atomically so the same single-use voucher cannot be used by multiple customers.
+- Create the corresponding router authorization or session.
+- Display helpful errors for invalid, expired, used, or suspended vouchers.
+
+My Account
+
+- Inline login and registration.
+- View active package, session status, remaining time, and data usage.
+- View transaction history and receipts.
+- Renew a package.
+- Manage profile and contact details.
+- View referral information and support tickets.
+
+Connected status
+
+Display this only when the backend and router confirm an active session.
+
+Show:
+
+- Connected and protected status.
+- Package name and expiry.
+- Remaining time, if reliable.
+- Data used and remaining, if supported.
+- Current bandwidth limit.
+- Router or access-point name.
+- IP or MAC address only when available from a trusted source and appropriate to display.
+- Interactive speed test that measures real performance.
+- Disconnect button only if the router adapter supports safe session termination.
+
+Do not invent speed-test results, connection status, traffic, or remaining time.
+
+6. INTERNET PACKAGES AND BILLING
+
+Support centrally managed packages priced according to the platform's configured policy. Initial business target: KES 450–3,500 for 30-day plans where applicable. Short-duration hotspot packages can have their own centrally configured prices.
+
+A package should support:
+
+- Name and description.
+- Price and currency.
+- Duration and expiration policy.
+- Speed limits.
+- Optional data quota.
+- Optional device limit.
+- Eligible router or network types.
+- Availability status.
+- Terms and fair-use policy.
+- Package category and display order.
+
+Support hourly, daily, weekly, and monthly durations when configured.
+
+Calculate package expiration on the backend. Define whether a package starts immediately after verified payment or on first successful login. Do not mix these policies.
+
+Prevent duplicate activations, incorrect expiry calculations, and payment replay.
+
+7. M-PESA INTEGRATION
+
+Integrate Safaricom Daraja STK Push through secure server-side functions.
+
+Provide a configurable M-Pesa integration for each authorized router owner if required by the business model. Keep platform-wide and tenant-specific payment credentials separate.
+
+Configuration fields:
+
+- Environment.
+- Consumer key and consumer secret.
+- Business shortcode or PayBill.
+- Passkey.
+- Account reference.
+- Callback URL.
+- Optional transaction description.
+
+The platform's previously specified PayBill is 222111 with account reference 5414200. Treat these as configurable settings and do not assume every router owner uses the same payment account.
+
+Payment flow:
+
+1. Customer selects a real package.
+2. Backend creates a unique pending order.
+3. Backend initiates the STK Push.
+4. Customer approves or cancels the prompt.
+5. Daraja sends the callback to the backend.
+6. Backend verifies the callback, merchant/order mapping, amount, and transaction state.
+7. The transaction is marked paid only after trustworthy verification.
+8. Backend creates an idempotent activation job.
+9. The router adapter authorizes the correct customer.
+10. The platform records the session and receipt.
+
+Handle timeout, cancellation, rejection, duplicate callback, delayed callback, incorrect amount, and activation failure.
+
+If payment succeeds but router authorization fails, record the successful payment and failed activation separately. Retry safely and provide an administrator workflow for resolution. Never charge again automatically or falsely report that internet was activated.
+
+Do not expose Daraja secrets or callback verification logic in frontend JavaScript.
+
+8. ROUTER CONNECTIVITY ARCHITECTURE
+
+Create a modular router-adapter system. Do not build one generic connector that assumes every manufacturer has the same API.
+
+Every router record must include:
+
+- Tenant/owner ID.
+- Router name and site.
+- Manufacturer and model.
+- Router firmware or controller version where available.
+- Connection method.
+- Management endpoint or controller ID.
+- Secure credential reference.
+- Supported capabilities.
+- Last successful connection time.
+- Last health-check result.
+- Current status and error details.
+- Configuration and authorization status.
+- Script or connector enrollment status.
+- Last script generation time.
+- Last successful enrollment time.
+- Active enrollment token status.
+
+Build a common adapter interface with operations such as:
+
+- Test connection.
+- Read router information.
+- Read health and uptime.
+- List supported client sessions.
+- Authorize a paid customer.
+- Disconnect a customer.
+- Create or revoke a voucher where supported.
+- Read traffic and bandwidth statistics where supported.
+- Apply speed or data limits where supported.
+- Reboot only when explicitly authorized.
+- Generate a vendor-specific setup script or manual setup guide where supported.
+- Enroll or verify an outbound connector.
+- Revoke an outbound connector.
+- Report capability limitations.
+
+Every action must verify tenant ownership, user permission, router capability, and current connection state.
+
+Generated scripts must be created server-side from approved templates. They must be scoped to the selected router and tenant, use least-privilege permissions, expire after a configurable period, and avoid exposing long-lived secrets. Scripts must not execute destructive commands, alter unrelated devices, disable security controls, or open public management access unless the user explicitly confirms a documented and supported configuration.
+
+9. MIKROTIK ROUTEROS CONNECTION
+
+Support MikroTik RouterOS HotSpot and other verified RouterOS configurations.
+
+Preferred connection methods:
+
+- RouterOS REST API over HTTPS for supported RouterOS versions.
+- RouterOS API/API-SSL when required by the adapter.
+- A secure VPN or outbound connector for routers behind NAT or dynamic IP addresses.
+- RADIUS where an appropriately configured RADIUS deployment is available and suitable.
+
+Owner setup workflow:
+
+1. Open Owner Dashboard → Network Management → Add Router.
+2. Select MikroTik.
+3. Enter a router name, site, RouterOS version, and management method.
+4. Configure a dedicated least-privilege router account.
+5. Configure secure management access over a private network or VPN.
+6. Select “Generate Router Setup Script” or open the manual configuration guide.
+7. Review the generated script, expiration time, required permissions, and expected changes.
+8. Copy the script or download it securely.
+9. Open the router's authorized Terminal or management console and paste the script only after reviewing it.
+10. If using an outbound connector, run the script on the router or approved local connector host and wait for enrollment confirmation.
+11. Configure the HotSpot interface, client addressing, DNS, and captive-portal settings as required.
+12. Configure the external portal and permitted walled-garden destinations.
+13. Configure the supported authentication method and authorization mapping.
+14. Test connection, read router identity, and inspect HotSpot status.
+15. Test customer authorization, expiry, bandwidth limits, and disconnect on a test account.
+16. Mark the router operational only after successful tests.
+
+The website must show the script's status as one of:
+
+- Generated.
+- Downloaded.
+- Awaiting installation.
+- Enrollment detected.
+- Connection test pending.
+- Connected.
+- Failed.
+- Expired.
+- Revoked.
+
+MikroTik adapter requirements:
+
+- Read system identity, resource usage, uptime, interfaces, and relevant HotSpot data.
+- Authorize paid customers using the configured HotSpot or RADIUS method.
+- Apply the correct expiry and rate limit.
+- Disconnect expired or revoked users where supported.
+- Report active sessions and traffic where available.
+- Handle API timeouts and lost connectivity.
+- Use least-privilege credentials and explicit permissions.
+- Keep router management off the public internet wherever possible.
+- Generate RouterOS commands only for the selected router and approved configuration.
+- Validate RouterOS version and command compatibility before issuing or displaying a script.
+- Never include a plaintext router password or long-lived platform secret in the generated script.
+- Provide a rollback or removal script where safely supported, and clearly label commands that require manual cleanup.
+
+Do not assume every RouterOS version supports the same REST features. Detect version and supported capabilities.
+
+Never put router passwords in frontend code. Do not configure insecure HTTP management for internet-facing access.
+
+10. TP-LINK OMADA CONNECTION
+
+Support TP-Link Omada through the official Omada Controller/Open API where the specific controller and firmware expose the required functionality.
+
+Possible deployment types:
+
+- Omada Hardware Controller.
+- Omada Software Controller.
+- Supported Omada Cloud Controller.
+
+Owner setup workflow:
+
+1. Open Network Management → Add Router or Controller.
+2. Select TP-Link Omada.
+3. Select the controller deployment type.
+4. Enter the controller address, site, and supported API configuration.
+5. Create an API application or integration using the controller's official documented process.
+6. Store the credential securely.
+7. If a local connector is required, select “Generate Connector Setup Instructions” and follow the displayed vendor-specific steps.
+8. Discover permitted sites, gateways, access points, and clients.
+9. Select the site that belongs to this router owner.
+10. Configure the SSID, VLAN, captive portal, and supported external portal or authentication method.
+11. Configure the controller's external portal redirect and required walled-garden rules.
+12. Test a client login, payment authorization, session expiry, and disconnect.
+13. Confirm that client authorization is actually supported before enabling paid access.
+
+Omada adapter requirements:
+
+- Read controller and site status.
+- Discover supported gateways and access points.
+- Read client status and statistics where exposed.
+- Manage client access or vouchers only through documented supported endpoints.
+- Use a controller-specific adapter for version differences.
+- Show unsupported operations as unavailable rather than pretending they work.
+- Generate setup instructions or scripts only when the installed controller version and deployment type are verified as compatible.
+
+Do not assume that every Omada device or controller supports direct API access, external captive portals, voucher management, or the same client authorization methods. Verify these capabilities against the installed controller version.
+
+11. UBIQUITI UNIFI CONNECTION
+
+Support Ubiquiti UniFi through the official UniFi Network API or supported local Network application API.
+
+Owner setup:
+
+1. Select Ubiquiti UniFi.
+2. Identify the UniFi Network application or supported management site.
+3. Create an API key or authorized integration using the official controller documentation.
+4. Store the credential server-side.
+5. Discover the sites, gateways, access points, and clients available to that account.
+6. Configure the SSID, guest portal, external portal integration, and access policies where supported.
+7. If a local connector is required, provide a secure, vendor-specific installation guide or generated connector command.
+8. Test paid authorization and client disconnect.
+9. Enable only the functions that are confirmed to work on the installed Network application version.
+
+Use the UniFi-specific adapter. Do not assume an API for one UniFi product automatically controls another product or service.
+
+12. OTHER ROUTER VENDORS
+
+Design additional adapter modules for:
+
+- OpenWrt using supported local services, scripts, or RADIUS.
+- Ruckus using its supported controller and authentication APIs.
+- Cambium Networks using supported management platforms and APIs.
+- Aruba Instant On or Aruba Central where the specific product exposes the required APIs.
+- Cisco wireless and gateway platforms where the relevant controller supports the required integration.
+- TP-Link standalone routers only when the specific model and firmware provide a supported integration.
+- Generic RADIUS-compatible routers and access points.
+- Other vendors added through documented adapter modules.
+
+For vendors that support local scripts or connector agents, provide a website-generated, vendor-specific setup script only after verifying the model, firmware, connection method, and required capabilities. Otherwise provide manual instructions and clearly mark automation as unavailable.
+
+Important:
+
+- Do not claim universal compatibility with every model.
+- Some access points require a separate gateway or controller to authorize customers and enforce billing.
+- An access point that only broadcasts WiFi is not necessarily able to enforce paid sessions by itself.
+- Support device discovery and monitoring separately from full billing/authentication support.
+- Maintain a compatibility matrix with vendor, models, firmware, authentication mode, monitoring, vouchers, disconnect, and bandwidth support.
+- Do not generate commands that could lock the owner out of their router without displaying a warning, requiring confirmation, and providing a documented recovery path.
+
+13. MAIN ROUTER AND ACCESS POINT NETWORK
+
+Create Admin → Network Management → Main Router.
+
+Support:
+
+- Register a main gateway/router.
+- Register child access points and downstream routers.
+- Assign each device to an owner, site, and parent device.
+- Visualize parent-child relationships.
+- Display link state, last contact, IP address, vendor, model, and supported functions.
+- Detect duplicate device identifiers and conflicting ownership.
+- Allow authorized administrators to move devices between sites.
+- Show offline devices and connection errors.
+- Display setup-script and connector enrollment status.
+- Allow authorized administrators to revoke compromised connectors or enrollment tokens.
+
+An access point should not be represented as a child of a gateway unless the relationship is actually configured or verified.
+
+Do not infer physical topology solely from device names. Distinguish configured topology from discovered topology.
+
+14. SECURE REMOTE ROUTER CONNECTIVITY
+
+Routers may be behind NAT, dynamic IP, or carrier-grade NAT. Do not require owners to expose router management ports publicly.
+
+Support appropriate options:
+
+- Site-to-site VPN.
+- WireGuard or another supported private tunnel.
+- A secure outbound connector agent where implemented.
+- Controller cloud APIs for supported vendors.
+- A secure private management network.
+
+If an outbound connector is used, provide a documented installation process and a website-generated enrollment command or script that includes a short-lived, single-use token. Implement device enrollment, rotating credentials, revocation, health checks, signed commands, limited permissions, command allowlists, and secure token storage.
+
+The website must show the owner the connector's installation prerequisites, supported operating systems or router versions, exact commands to run, expected enrollment output, and a way to cancel or revoke the enrollment token.
+
+All management commands must be authenticated and authorized. Add command timeouts, retries, audit logs, and safeguards against duplicate commands.
+
+15. CUSTOMER AUTHORIZATION AND RADIUS
+
+Design a common authentication and authorization layer.
+
+Where suitable, integrate RADIUS for supported gateways and controllers. Support appropriate authentication and accounting records, including session start, interim updates, and session stop when available.
+
+Store:
+
+- Customer and router mapping.
+- Package and payment reference.
+- Router session ID.
+- Start and expiry times.
+- Assigned bandwidth limits.
+- Data limits and usage.
+- Activation status.
+- Deactivation reason.
+- Audit events.
+
+A verified payment must authorize only the customer, package, site, and device permitted by that order.
+
+Support package expiry and revocation using backend jobs and router-enforced session limits where possible. Do not rely exclusively on a browser countdown to end internet access.
+
+16. ROUTER OWNER INTEGRATIONS
+
+Create an Integrations page for authorized owner-specific services.
+
+M-Pesa
+
+- Secure credential setup.
+- STK Push.
+- Callback verification.
+- Test connection where supported.
+- Payment logs and diagnostics.
+
+WhatsApp
+
+- Supported WhatsApp Business API/provider integration.
+- Approved message templates and consent management.
+- Payment receipts, package expiry alerts, and support notifications.
+- Delivery status where available.
+
+SMS
+
+- Configurable supported SMS provider.
+- Sender ID settings where permitted.
+- Test messages and delivery logs.
+
+Email
+
+- Configurable supported email provider.
+- Verified sender configuration.
+- Receipt, account verification, and support emails.
+- Delivery and error logs.
+
+Do not claim a provider is connected until a real configuration test succeeds. Encrypt secrets server-side, never return full secrets to the browser, and never write them to ordinary application logs.
+
+17. SUBSCRIPTIONS, REFERRALS AND WITHDRAWALS
+
+Platform subscriptions:
+
+- Display plan, price, billing period, limits, and status.
+- Provide payment and renewal flows.
+- Track start, expiry, grace period, suspension, and cancellation.
+- Enforce plan limits in the backend.
+
+Referral system:
+
+- Create unique referral codes.
+- Attribute eligible new customers.
+- Apply the configured commission policy.
+- Prevent self-referrals and duplicate rewards.
+- Track pending, approved, paid, and reversed commissions.
+
+The proposed referral commission is 10%, subject to the centrally configured rules.
+
+Withdrawals:
+
+- Show eligible balance, minimum withdrawal, fee, and withdrawal history.
+- Require verified payment details.
+- Use an approval workflow and audit trail.
+- Prevent withdrawals exceeding available balance.
+- Separate platform revenue, owner collections, refunds, and referral commissions.
+- Never display a withdrawal as completed before payment is confirmed.
+
+18. REQUIRED PAGES
+
+Create these pages or route-equivalent views:
+
+1. index — public homepage.
+2. account — login and registration.
+3. dashboard — role-aware landing dashboard.
+4. packages — official internet packages.
+5. payment — payment status and checkout.
+6. transactions — receipts and transaction history.
+7. referrals — referral program.
+8. notifications — customer and owner notifications.
+9. profile — account information.
+10. support — support tickets and help.
+11. devices — connected devices and sessions.
+12. settings — account and security settings.
+13. connect-router — router connection wizard, script generation, script preview, and setup status.
+14. my-routers — owner router list.
+15. admin-dashboard — Super Admin overview.
+16. admin-users — users and owners management.
+17. admin-routers — router and network management.
+18. withdrawals — eligible balances and withdrawal requests.
+19. integrations — M-Pesa, WhatsApp, SMS, and email setup.
+20. network-management — main gateway, sites, and access points.
+21. captive portal — customer hotspot experience.
+22. subscription management — owner platform plans.
+23. audit logs — privileged actions and security events.
+24. router setup scripts — generated scripts, installation instructions, token status, revocation, and setup history.
+
+If the current project uses a different routing structure, preserve it and implement equivalent functionality.
+
+19. DATABASE AND BACKEND
+
+Use Supabase Auth and PostgreSQL with Row Level Security.
+
+Create appropriately normalized tables, including:
+
+- profiles
+- tenants or router_owners
+- tenant_members
+- platform_subscriptions
+- sites
+- routers
+- access_points
+- router_capabilities
+- router_credentials references
+- router_enrollment_tokens
+- router_setup_scripts
+- router_connector_installations
+- router_script_events
+- packages
+- customer_packages
+- orders
+- payments
+- payment_events
+- vouchers
+- voucher_redemptions
+- router_sessions
+- usage_records
+- referrals
+- commissions
+- withdrawal_requests
+- support_tickets
+- notifications
+- integration_configs
+- integration_events
+- router_command_jobs
+- audit_logs
+
+Use foreign keys, indexes, unique constraints, timestamps, tenant ownership, and appropriate transaction boundaries.
+
+Store sensitive router and provider credentials in an encrypted server-side secret store or an appropriately protected secrets service. Store references to secrets in normal application records.
+
+Apply RLS policies to every tenant-owned table. Users must never gain access to another tenant by changing a URL, query parameter, or record ID.
+
+Use server-side functions for payment verification, router commands, secret retrieval, package activation, script generation, token issuance, connector enrollment, and privileged actions.
+
+Generated scripts must never be stored as publicly accessible files. If scripts are stored, encrypt or protect them, restrict access by tenant and user role, and apply expiration and revocation checks.
+
+20. RELIABILITY AND SECURITY
+
+Implement:
+
+- Role-based authorization on the server.
+- Supabase RLS.
+- Input validation.
+- Rate limits and abuse protection.
+- Email verification where required.
+- Secure password recovery.
+- Idempotency keys for payments and router actions.
+- Verified payment callbacks.
+- Secret redaction.
+- Router credential rotation and revocation.
+- Short-lived, single-use router enrollment tokens.
+- Script expiration and revocation.
+- Script template versioning and approval.
+- Command allowlists and dangerous-command safeguards.
+- Audit trails for privileged actions, script generation, script download, token use, connector enrollment, and revocation.
+- Backoff and retry for temporary router failures.
+- Timeouts and safe handling of offline devices.
+- Monitoring for failed payment and activation jobs.
+- Safe database migrations.
+- Backups and recovery procedures.
+- Terms and privacy notices.
+- Appropriate data retention.
+- Clear warnings before users paste or execute router commands.
+- Protection against cross-site scripting, command injection, template injection, and malicious router input.
+- No secrets in URLs, query strings, frontend bundles, browser storage, public logs, or generated scripts unless they are short-lived enrollment tokens specifically designed for that purpose.
+
+Never store plaintext secrets in frontend code, public repositories, browser storage, or client-readable database fields.
+
+21. FINAL TESTING AND ACCEPTANCE
+
+Before marking the platform complete, test:
+
+1. Router-owner registration and isolation.
+2. Super Admin access restrictions.
+3. Customer registration and login.
+4. Live package retrieval.
+5. M-Pesa success, failure, cancellation, timeout, and duplicate callbacks.
+6. Successful payment followed by router activation.
+7. Payment success with router offline.
+8. Voucher validity, expiry, and duplicate redemption.
+9. Router disconnection and reconnection.
+10. Bandwidth and package expiry enforcement.
+11. Owner credential encryption and redaction.
+12. Cross-tenant access denial.
+13. Subscription expiry and suspension.
+14. Referral commission calculations.
+15. Withdrawal approval and balance checks.
+16. Mobile layout and accessibility.
+17. Each vendor adapter's supported capabilities.
+18. Audit logs and operational error handling.
+19. Router setup-script generation for each supported vendor.
+20. Script expiration, revocation, and single-use enrollment tokens.
+21. Script preview and copy/download permissions.
+22. Successful router enrollment after pasting the script into an authorized Terminal.
+23. Failed, expired, malformed, or reused enrollment tokens.
+24. Prevention of plaintext secrets in generated scripts.
+25. Dangerous-command detection and script-template approval.
+26. Connector health checks, command signing, and connector revocation.
+27. Recovery instructions when a script fails or a router becomes unreachable.
+
+Provide setup instructions, required environment variables, database migrations, deployment instructions, router configuration guides, vendor-specific Terminal script instructions, script security warnings, rollback or removal instructions where supported, and a list of integrations that still require real credentials or hardware.
+
+Do not call the application production-ready until the relevant integration tests have passed against actual supported services and equipment.
+
+BRISK SMART CONNECT — CAPTIVE PORTAL DESIGN UPDATE
+
+Update the existing BRISK Smart Connect website to match the attached captive portal design references. Modify the existing project instead of creating a new website. Preserve all working features, Supabase connections, authentication, payment integrations, router management and existing database structure. Before implementation, inventory and reuse the existing Supabase tables, fields, relationships, RLS policies, server endpoints, payment states, idempotency keys and router authorization flows. Do not create duplicate tables, payment systems, authorization paths or parallel sources of truth.
+
+1. DESIGN AND BRANDING
+
+Create a premium, mobile-first WiFi captive portal using the following style:
+
+- Brand: BRISK Smart Connect.
+- Background: deep navy blue and dark blue gradients.
+- Primary accents: electric blue, cyan and purple gradients.
+- Buttons and brand highlights: bright yellow.
+- Text: white and light blue-grey.
+- Success status: green.
+- Use real SVG or Lucide icons, not emojis.
+- Use rounded cards, subtle borders, soft glow effects and smooth transitions.
+- Keep the interface clean, modern and readable on small Android phones.
+- Prevent horizontal scrolling and ensure the entire interface works on desktop and mobile.
+
+Use the supplied screenshots as visual references, not as images to display inside the actual website.
+
+2. KEEP THE CAPTIVE PORTAL ON ONE PAGE
+
+Create a single scrollable captive portal at the existing portal URL. Do not redirect customers to separate pages for ordinary portal actions.
+
+A. Header
+
+Display:
+
+- BRISK Smart Connect logo and name.
+- Subtitle: “Fast & Secure WiFi Access”.
+- Current hotspot name and location where available.
+- Language selector.
+- Help/support contact.
+- Responsive menu if needed.
+
+B. Hotspot information banner
+
+Show a prominent blue-to-purple gradient card with:
+
+- WiFi icon.
+- Hotspot/business name.
+- Location or branch.
+- Network description, such as “High Speed Hotspot”.
+- Optional owner-configured background and welcome text.
+
+Load hotspot details from the router or hotspot configuration assigned to the current portal. Do not hardcode one business name for all locations.
+
+C. Portal navigation tabs
+
+Add three tabs:
+
+1. Buy Data
+2. Voucher
+3. My Account
+
+Switch between sections without leaving the portal URL. Keep the selected tab visually highlighted.
+
+D. WiFi package selection
+
+Display available packages in responsive cards.
+
+Each package card must show:
+
+- Package name.
+- Price in KES.
+- Duration.
+- Speed limit.
+- Data allowance, if applicable.
+- Popular label, if configured.
+- Buy Now button.
+
+Example visual packages for preview only:
+
+- KES 30 — 2 hours — 15 Mbps.
+- KES 60 — 12 hours — 20 Mbps.
+- KES 100 — 24 hours — 25 Mbps.
+
+Do not use these example values as live prices unless they exist in the official package database. Fetch actual enabled packages from the backend.
+
+When a customer clicks Buy Now:
+
+- Select the package.
+- Highlight the selected package.
+- Update the payment amount and package details.
+- Scroll to the payment section.
+- Preserve the customer's selected package while they complete checkout.
+
+E. M-Pesa payment section
+
+Display:
+
+- Heading: “Pay with M-Pesa”.
+- Instructions explaining that an STK Push will be sent to the customer's phone.
+- Kenyan phone number input with validation.
+- Selected package and amount.
+- “Pay with M-Pesa” button.
+- Payment progress and result messages.
+
+Payment workflow:
+
+1. Validate the phone number and selected package against the existing backend catalogue and portal/hotspot ownership context.
+2. Create one unique pending payment record using the existing payment table, payment-state model and server endpoint. Reuse the existing idempotency-key mechanism; do not introduce a second key format or payment lifecycle.
+3. Initiate the STK Push through the correct Router Owner's configured M-Pesa integration using the existing server-side integration flow.
+4. Show a pending state and tell the customer to check their phone.
+5. Verify the result through the trusted provider callback and existing server-side reconciliation flow.
+6. If payment fails or is cancelled, display the correct existing terminal status and allow a safe retry with a new request only when permitted by the current idempotency rules.
+7. After confirmed payment, request internet authorization through the existing supported router integration and authorization endpoint.
+8. Display internet access as active only after the existing backend confirms authorization.
+9. Generate a transaction receipt and record the payment reference using the existing payment and receipt fields.
+
+Never grant internet access based only on a frontend message, a screenshot, or the customer's claim that they paid. Duplicate callbacks must be handled by the existing unique payment/provider references and idempotent reconciliation logic so they cannot create duplicate payments, receipts or sessions.
+
+If payment is confirmed but router authorization fails, show that the payment was received and access is still being activated. Retry safely through the existing authorization flow and provide a support option. Never charge the customer again automatically.
+
+F. Manual payment methods
+
+Allow each authorized Router Owner to configure and manage their own manual payment methods for their assigned hotspot or portal, using the existing owner, hotspot and portal-configuration authorization scope.
+
+Owners may add, edit, enable, disable and reorder manual payment methods such as:
+
+- Cash.
+- Bank transfer.
+- Paybill or till payment.
+- Mobile money payment instructions.
+- Other platform-approved offline payment methods.
+
+For each method, allow only the fields supported by the existing data model and security rules, such as:
+
+- Display name.
+- Instructions shown to customers.
+- Account, till, paybill or reference details where applicable.
+- Contact or verification instructions.
+- Enabled status.
+- Display order.
+
+Do not expose private credentials, secret keys or sensitive banking information. Validate and sanitize all owner-provided content on the client and server.
+
+When a customer selects a manual payment method:
+
+- Show the configured instructions and selected package.
+- Allow the customer to submit the required payment reference or proof only if the existing backend supports this workflow.
+- Create or update the payment using the existing payment table, payment states, receipt fields and idempotency controls.
+- Keep the payment in the existing pending or manual-review state until an authorized owner or existing backend verification flow confirms it.
+- Never grant internet access based only on a submitted reference, uploaded proof or frontend confirmation.
+- After confirmation, use the existing router authorization flow and show access as active only after trusted backend confirmation.
+- Prevent duplicate submissions and duplicate receipts through existing uniqueness and idempotency controls.
+
+If the current project does not have a supported manual-payment workflow, implement the feature by extending the existing payment model and server flow narrowly, without creating a parallel payment system or weakening tenant isolation.
+
+G. M-Pesa, WhatsApp and email messaging APIs
+
+Allow each authorized Router Owner to configure supported customer-notification integrations for their own hotspot or portal:
+
+- M-Pesa payment and callback integration, using the existing server-side M-Pesa flow.
+- WhatsApp messaging API integration.
+- Email delivery API integration.
+
+Reuse existing integration, notification, owner, hotspot and portal-configuration tables, fields, endpoints and secrets-management conventions wherever available. Do not expose API tokens, credentials, signing keys or provider secrets in browser code.
+
+Owners may configure only the provider settings and notification templates permitted by the existing platform, including:
+
+- Provider selection.
+- Sender or business identifier where supported.
+- API endpoint or account identifier where required.
+- Enabled notification events.
+- Customer-facing message templates.
+- Support contact details.
+- Test connection or test message action, where supported.
+
+Store secrets only through the existing secure backend configuration or secrets-management mechanism. If no secure storage exists, add a narrowly scoped server-side configuration mechanism with encrypted or protected values and owner/hotspot isolation. Never return secret values to the frontend after saving.
+
+Support notifications for applicable existing events, such as:
+
+- M-Pesa payment initiated.
+- Payment pending.
+- Payment confirmed.
+- Payment failed or cancelled.
+- Manual payment submitted.
+- Manual payment approved or rejected.
+- Router authorization completed or delayed.
+- Receipt generated.
+- Voucher or package access activated.
+
+Use the existing notification queue, delivery status, retry and observability conventions where available. Notification failure must not change payment status, create duplicate payments or grant access. Message delivery must be idempotent using the existing event and notification identifiers. Respect customer consent, opt-out settings, applicable privacy requirements and provider rate limits.
+
+WhatsApp messages must use an approved WhatsApp Business or supported messaging provider API, not unofficial browser automation. Email must use the configured transactional email provider or existing email service. If credentials or provider configuration are missing, show the feature as unavailable and provide a clear setup status rather than pretending delivery succeeded.
+
+H. Voucher section
+
+Provide:
+
+- Voucher code input.
+- Validate Voucher button.
+- Loading state.
+- Clear success or error message.
+
+Validate the voucher against the existing backend voucher tables, fields, relationships and RLS/server authorization rules for the correct hotspot and owner. If valid, request authorization through the existing supported router integration and record the resulting session using the existing session model. Never accept a voucher solely because it matches a frontend pattern.
+
+I. My Account section
+
+Allow customers to:
+
+- Log in using the authentication methods supported by the existing application.
+- Register if registration is enabled.
+- View eligible active packages and session status.
+- View remaining time or data where available.
+- View transaction history and receipts.
+- Renew or purchase another package.
+- Contact support.
+
+Keep login and registration forms inside this same portal using an inline panel, tab or modal. Reuse the existing Supabase Auth flow, profile/customer relationships, protected queries and RLS policies. Do not create duplicate customer or account tables.
+
+J. Router Owner package and PPPoE customer management
+
+Add an authorized Router Owner management area using the existing authenticated dashboard or owner-management interface. Do not expose owner controls to ordinary captive-portal customers.
+
+Allow each Router Owner to manage their own WiFi package catalogue within the platform's permitted limits:
+
+- Add new packages manually.
+- Edit package name, price, duration, speed limit, data allowance, description and display order where supported.
+- Mark a package as popular or featured.
+- Enable or disable packages.
+- Assign packages only to their own authorized hotspot, router or portal.
+- Preview how packages appear on their captive portal.
+- Preserve existing package purchase, payment, receipt and authorization relationships when packages are edited or disabled.
+
+Package ownership and assignment must be enforced through existing owner, hotspot, router-assignment, package and RLS/server authorization relationships. Owners must not view, edit, disable or delete another owner's packages. Do not create a duplicate package catalogue if an existing catalogue can be extended. Preserve historical package and payment data by using the existing archival or soft-disable conventions.
+
+Allow each authorized Router Owner to add and manage their own PPPoE customers using the existing router and customer-management flows.
+
+Owner capabilities may include:
+
+- Add a PPPoE customer.
+- Assign the customer to the correct owner, router, hotspot or PPPoE service.
+- Configure the supported PPPoE username, service profile, package, speed limit, data allowance and validity period.
+- Enable, disable, suspend or reactivate the customer where supported.
+- View connection status, session history, usage and expiry from trusted router data.
+- Reset or update credentials only through the existing secure backend flow.
+- Import customers only if an existing validated import workflow is available.
+- View customer payment and package history according to existing authorization rules.
+
+PPPoE credentials and router secrets must remain protected and must never be exposed in client logs, URLs, browser storage or unauthorized API responses. Validate usernames, passwords, service profiles, package assignments and router ownership on the server. Prevent duplicate PPPoE usernames within the applicable router or owner scope using existing uniqueness constraints. Do not create a second customer identity, session model or router authorization path.
+
+When a PPPoE customer is created or updated:
+
+- Validate the owner, router and hotspot assignment.
+- Use the existing router-management endpoint or integration to provision or synchronize the customer.
+- Record the operation and resulting status using existing audit, customer, router and session fields.
+- Clearly distinguish a saved customer record from successful router provisioning.
+- If router provisioning fails, do not show the customer as active; display the failure and provide a safe retry.
+- Do not automatically charge the customer or grant access unless an existing confirmed payment and authorization flow permits it.
+
+K. Connected and protected panel
+
+When a valid active session exists, show a prominent green status card with:
+
+- “CONNECTED & PROTECTED”.
+- Active package name.
+- Remaining time, with a live countdown if reliable session-expiry data is available.
+- Assigned bandwidth or speed limit.
+- Remaining data, if supported.
+- Connection status.
+- Speed test button.
+- Disconnect Device button, only when the platform and router integration support that operation.
+
+Show the connected panel only when the existing backend confirms the user's session is active through trusted router/session data. Reuse the existing session status, expiry, usage and authorization fields.
+
+Display IP address and MAC address only when they are available from trusted router/session data and it is appropriate to reveal them to the authenticated customer. Do not invent connection values.
+
+L. Interactive speed test
+
+Add a “Run Interactive Speed Test” button.
+
+Use a real, permitted speed-test service or a reliable backend-supported implementation already approved by the project. Show progress, measured download speed, upload speed and latency only when those metrics have actually been measured.
+
+If no speed-test service is configured, explain that the feature is currently unavailable instead of displaying fabricated results.
+
+M. Support and footer
+
+Display configured support details:
+
+- Support phone.
+- Email.
+- WhatsApp contact link, if configured.
+- Terms and Conditions.
+- Privacy Policy.
+- “Powered by BRISK Smart Connect”.
+
+Use the current Router Owner's configured support details for the corresponding hotspot, with platform defaults only where appropriate. Resolve these values through the existing owner, hotspot and portal-configuration relationships.
+
+3. ROUTER OWNER CUSTOMIZATION
+
+Connect the portal to the existing Router Owner captive portal settings.
+
+Allow authorized owners to customize:
+
+- Hotspot name and location.
+- Logo and background image.
+- Welcome message and subtitle.
+- Support phone, email and WhatsApp link.
+- Theme colors within allowed branding options.
+- Whether supported tabs and authentication options are enabled.
+- Package display order and featured package.
+- Manual payment methods and customer-facing payment instructions.
+- Supported M-Pesa, WhatsApp and email notification settings and templates.
+- PPPoE customer-management options permitted by the assigned router and platform plan.
+
+Package prices, durations, speed limits and terms must remain controlled by the official package catalogue and authorized platform configuration. Reuse existing package, hotspot assignment and owner relationships rather than creating duplicate catalogue or configuration tables.
+
+Each portal configuration must be isolated to the correct owner and assigned hotspot. One owner's changes must never affect another owner's portal. Enforce this through the existing Supabase RLS policies and server-side authorization checks, including owner, hotspot and router-assignment scope.
+
+4. TECHNICAL REQUIREMENTS
+
+- Use the existing project framework and component conventions.
+- First inspect and document the existing Supabase schema: tables, fields, primary and foreign keys, relationships, views, functions, triggers and enums relevant to owners, hotspots, packages, vouchers, customers, payments, receipts, sessions, router assignments, PPPoE customers, manual payment methods, notification integrations and portal settings.
+- Reuse existing Supabase clients, authentication, database tables and backend endpoints.
+- Reuse and preserve existing RLS policies; add only narrowly scoped policy changes required by the implementation, without weakening tenant isolation or exposing payment, credential, router or provider-secret data.
+- Reuse existing server endpoints, payment states, provider references, idempotency keys and router authorization flows. Do not create duplicate tables, duplicate payment systems, duplicate status machines or duplicate authorization endpoints.
+- Keep all M-Pesa credentials, WhatsApp credentials, email-provider credentials, router credentials, provider secrets and signing keys on the backend.
+- Do not expose API secrets in browser code.
+- Validate all inputs on the client and server.
+- Add loading, success, error, empty and pending states.
+- Prevent duplicate payment requests, manual-payment submissions, notifications and router-provisioning requests through the existing idempotency controls, database uniqueness constraints and server-side transaction handling.
+- Ensure callback processing is idempotent and cannot duplicate payment records, receipts, entitlements, notifications or router sessions.
+- Ensure payment confirmation and router authorization are separate states. A confirmed payment must not be represented as active internet access until the existing router authorization flow succeeds.
+- Ensure manual payments remain pending until trusted owner or backend verification confirms them.
+- Ensure owner-created packages, manual payment methods, notification settings and PPPoE customers are scoped to the authorized owner, hotspot and router.
+- Protect PPPoE credentials and provider secrets from logs, client responses, browser storage and unauthorized queries.
+- Preserve accessibility, keyboard navigation and sufficient contrast.
+- Respect reduced-motion settings.
+- Do not hardcode fake payments, sessions, customer records, IP addresses, connection speeds, notification deliveries or router-provisioning results.
+- Log and surface failures using the existing observability and support conventions without exposing secrets or sensitive provider payloads.
+- Preserve backward compatibility for existing router, payment, authentication, notification and customer-account functionality.
+
+5. ACCEPTANCE TESTS
+
+Before considering the update complete, verify that:
+
+1. The full portal works at one URL.
+2. The Buy Data, Voucher and My Account tabs work correctly.
+3. Package selection updates the payment amount from the official backend catalogue.
+4. The M-Pesa payment flow uses the correct owner's existing integration, endpoint, payment states and idempotency key.
+5. Failed or cancelled payments never grant internet access.
+6. Confirmed payments are recorded once, duplicate callbacks are harmless, and reconciliation is correct.
+7. Manual payment methods can be configured by an authorized Router Owner and are isolated by owner and hotspot.
+8. Manual payments remain pending until trusted verification and never grant access from frontend confirmation alone.
+9. WhatsApp and email notifications use secure server-side provider integrations, respect delivery status and do not alter payment or access state when delivery fails.
+10. The connected panel appears only for a verified active session.
+11. Countdown, bandwidth, data usage and speed test show real data only.
+12. Voucher validation checks the backend, correct hotspot and owner authorization scope.
+13. An authorized Router Owner can add, edit, enable and disable their own WiFi packages without affecting another owner's catalogue.
+14. Package changes preserve historical payment, receipt and session records.
+15. An authorized Router Owner can add and manage their own PPPoE customers through the existing secure router-management flow.
+16. PPPoE credentials are protected, duplicate usernames are rejected within the applicable scope, and failed router provisioning is not shown as active.
+17. Mobile layouts fit the screen without horizontal overflow.
+18. Owner branding, payment methods, notification settings and support details load for the correct hotspot.
+19. Existing router, payment, authentication and customer account functionality remains intact.
+20. Supabase RLS policies prevent cross-owner and cross-hotspot access to portal settings, packages, vouchers, payments, receipts, sessions, manual payment methods, notification settings and PPPoE customers.
+21. Server endpoints reject unauthorized owner, hotspot, package, payment, notification, PPPoE and router-authorization requests.
+22. Payment confirmation followed by router-authorization failure leaves the payment confirmed but the access state inactive or pending, with safe retry and no additional charge.
+23. Notification-provider failure does not reverse a confirmed payment, create duplicate records or grant unauthorized access.
+24. The implementation report identifies the reused tables, fields, relationships, RLS policies, endpoints, payment states, idempotency keys and router authorization flows.
+25. The implementation report identifies which features are fully functional and which still require provider credentials, deployment configuration, secure secrets configuration, approved WhatsApp or email providers, or compatible router hardware.
+
+Implement the actual code changes, connect the existing backend, and report which features are fully functional and which still require provider credentials, deployment, secure provider configuration or compatible router hardware.

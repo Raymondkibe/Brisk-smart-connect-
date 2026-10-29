@@ -30,3 +30,23 @@
 ::-webkit-scrollbar-thumb:hover {
   background: rgba(100, 116, 139, 0.8);
 }
+
+/* Print Styles for Brisk SmartConnect Batch Vouchers & Thermal Slips */
+@media print {
+  body {
+    background: white !important;
+    color: black !important;
+  }
+
+  header, nav, aside, footer, button, .print\\:hidden {
+    display: none !important;
+  }
+
+  .printable-cards-grid {
+    display: grid !important;
+    grid-template-columns: repeat(3, 1fr) !important;
+    gap: 12px !important;
+    background: white !important;
+  }
+}
+

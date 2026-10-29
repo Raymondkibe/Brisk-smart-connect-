@@ -127,31 +127,53 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
         </div>
 
         {/* Selected Package Details */}
-        <div className="mt-4 p-3.5 bg-slate-950 rounded-xl border border-slate-800/80 space-y-2">
-          <div className="flex justify-between items-start">
-            <div>
-              <span className="text-xs text-slate-400">Selected Item</span>
-              <h4 className="text-base font-bold text-white">{targetItem.name}</h4>
-              {targetItem.durationLabel && (
-                <div className="text-xs text-slate-400 flex items-center gap-2 mt-0.5">
-                  <span>{targetItem.durationLabel} Access</span>
-                  {targetItem.speedLabel && (
-                    <>
-                      <span>·</span>
-                      <span className="text-sky-400 font-medium">{targetItem.speedLabel}</span>
-                    </>
+        {(() => {
+          const isPlatformSub = targetItem.type === 'ROUTER_OWNER_SUBSCRIPTION';
+          return (
+            <div className="mt-4 p-3.5 bg-slate-950 rounded-xl border border-slate-800/80 space-y-2.5">
+              <div className="flex justify-between items-start">
+                <div>
+                  <div className="flex items-center gap-1.5 mb-1">
+                    <span
+                      className={`text-[10px] font-bold px-2 py-0.5 rounded border ${
+                        isPlatformSub
+                          ? 'bg-amber-950/70 text-amber-300 border-amber-800/60'
+                          : 'bg-sky-950/70 text-sky-300 border-sky-800/60'
+                      }`}
+                    >
+                      {isPlatformSub ? 'PLATFORM SUBSCRIPTION FLOW' : 'INTERNET ACCESS FLOW'}
+                    </span>
+                  </div>
+                  <h4 className="text-base font-bold text-white">{targetItem.name}</h4>
+                  <div className="text-xs text-slate-400 mt-0.5">
+                    {isPlatformSub ? (
+                      <span>Payee: <strong className="text-slate-200">BRISK Smart Connect SaaS</strong> (Paybill 408801)</span>
+                    ) : (
+                      <span>Payee: <strong className="text-slate-200">Kiambu Smart WiFi</strong> (Till 882194)</span>
+                    )}
+                  </div>
+                  {targetItem.durationLabel && (
+                    <div className="text-xs text-slate-400 flex items-center gap-2 mt-1">
+                      <span>{targetItem.durationLabel} Access</span>
+                      {targetItem.speedLabel && (
+                        <>
+                          <span>·</span>
+                          <span className="text-sky-400 font-medium">{targetItem.speedLabel}</span>
+                        </>
+                      )}
+                    </div>
                   )}
                 </div>
-              )}
-            </div>
-            <div className="text-right">
-              <span className="text-xs text-slate-400">Amount Due</span>
-              <div className="text-lg font-extrabold text-amber-400">
-                KES {targetItem.priceKes.toLocaleString()}
+                <div className="text-right">
+                  <span className="text-xs text-slate-400">Amount Due</span>
+                  <div className="text-lg font-extrabold text-amber-400">
+                    KES {targetItem.priceKes.toLocaleString()}
+                  </div>
+                </div>
               </div>
             </div>
-          </div>
-        </div>
+          );
+        })()}
 
         {/* Dynamic States */}
         {state === 'INPUT' && (
@@ -181,7 +203,9 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
             <div className="p-3 bg-sky-950/30 border border-sky-800/40 rounded-xl flex items-start gap-2.5 text-xs text-sky-200">
               <ShieldCheck className="w-4 h-4 text-sky-400 shrink-0 mt-0.5" />
               <span>
-                Secured via Safaricom Daraja API. Your router session activates instantly upon confirmation.
+                {targetItem.type === 'ROUTER_OWNER_SUBSCRIPTION'
+                  ? 'Secured via Safaricom Daraja API. 30-day router limit & management license activates immediately.'
+                  : 'Secured via Safaricom Daraja API. Your router session activates instantly upon PIN entry.'}
               </span>
             </div>
 

@@ -90,24 +90,7 @@ export const VoucherModal: React.FC<VoucherModalProps> = ({
               </p>
             </div>
 
-            {/* Quick Demo Help */}
-            <div className="p-3 bg-slate-950/70 border border-slate-800/80 rounded-xl text-xs space-y-1">
-              <span className="text-slate-400 text-[11px] font-semibold uppercase tracking-wider">
-                Available Test Vouchers in System:
-              </span>
-              <div className="flex flex-wrap gap-1.5 pt-1">
-                {['BRK-8821-4920', 'BRK-3391-7712', 'BRK-5541-1299'].map((demoCode) => (
-                  <button
-                    key={demoCode}
-                    type="button"
-                    onClick={() => setCode(demoCode)}
-                    className="px-2 py-0.5 bg-slate-800 hover:bg-slate-700 text-sky-300 font-mono text-[11px] rounded transition-colors"
-                  >
-                    {demoCode}
-                  </button>
-                ))}
-              </div>
-            </div>
+
 
             {error && (
               <div className="p-3 bg-red-950/40 border border-red-800/50 rounded-xl flex items-start gap-2 text-xs text-red-300">

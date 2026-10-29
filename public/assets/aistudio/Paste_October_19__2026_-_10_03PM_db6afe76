@@ -1,0 +1,3707 @@
+BRISK SMART CONNECT — CAPTIVE PORTAL DESIGNER AND CUSTOMIZATION SYSTEM
+
+Implement a complete captive portal and portal customization system within the existing BRISK Smart Connect application.
+
+Use the existing React, TypeScript, Supabase and backend architecture. Do not create an unrelated project or replace working features.
+
+A. CUSTOMER CAPTIVE PORTAL DESIGN
+
+Create a premium, mobile-first WiFi captive portal inspired by the general functionality of professional ISP management platforms such as VunaFlow. Create original layouts and components. Do not copy proprietary source code, branding, or exact interface designs.
+
+The portal should have:
+
+Welcome page
+
+Login page
+
+Registration page
+
+Package catalogue
+
+M-Pesa checkout
+
+Voucher login
+
+Payment processing
+
+Payment success and failure
+
+Internet activation status
+
+Active session dashboard
+
+Transaction history
+
+Receipt details
+
+Help and support
+
+Terms and privacy
+
+Welcome page
+
+Display:
+
+Owner's uploaded logo.
+
+Owner's business name.
+
+Hotspot or location name.
+
+Custom background image or gradient.
+
+Custom welcome heading and description.
+
+Get Started button.
+
+Login link for returning customers.
+
+Language selector if enabled.
+
+Support link.
+
+Terms and privacy links.
+
+Use attractive package cards, rounded corners, clear typography, subtle animations and responsive layouts.
+
+Login and registration
+
+Allow customers to:
+
+Register with the required details.
+
+Sign in to an existing account.
+
+Verify their contact details where required.
+
+Request password reset when applicable.
+
+Enter a voucher code.
+
+View useful authentication errors.
+
+Never collect a customer's WiFi password or account credentials unnecessarily. Use secure authentication and appropriate router-specific login mechanisms.
+
+Package catalogue
+
+Load eligible packages from the backend.
+
+Each package card should show:
+
+Package name.
+
+Price.
+
+Duration.
+
+Speed.
+
+Data allowance where applicable.
+
+Device limits where applicable.
+
+Short description.
+
+Buy Now button.
+
+Allow package filtering by category or duration when useful.
+
+Only display packages that the Super Admin has approved and the router owner has enabled for that hotspot.
+
+M-Pesa checkout
+
+The customer selects a package, confirms the amount and enters their phone number.
+
+The backend initiates the appropriate owner's configured M-Pesa payment request. Display pending, successful, cancelled and failed states.
+
+Never activate internet based only on a frontend success message. Wait for trusted payment verification and the router authorization workflow.
+
+Voucher login
+
+Provide a voucher code field, validation status and clear error messages. Redeem vouchers securely and prevent duplicate use when vouchers are single-use.
+
+Active session
+
+Display:
+
+Connection status.
+
+Package name.
+
+Activation time.
+
+Expiry time.
+
+Remaining time.
+
+Data used and remaining data when supported.
+
+Connection details where appropriate.
+
+View receipt.
+
+Buy another package.
+
+Support link.
+
+Do not invent network usage statistics.
+
+B. ROUTER OWNER CAPTIVE PORTAL BUILDER
+
+Add a sidebar item called "Captive Portal" to the router owner dashboard.
+
+Create the following tabs.
+
+Tab 1: Portal Settings
+
+Allow the owner to configure:
+
+Portal name.
+
+Business display name.
+
+Hotspot location.
+
+Welcome heading.
+
+Welcome description.
+
+Default language.
+
+Enabled authentication methods.
+
+Post-login destination.
+
+Support phone number.
+
+Support email.
+
+Terms URL.
+
+Privacy URL.
+
+Portal availability.
+
+The owner must only edit portals belonging to their own business.
+
+Tab 2: Branding and Appearance
+
+Allow the owner to:
+
+Upload a logo.
+
+Upload a background image.
+
+Choose primary and secondary colors.
+
+Choose page background and text colors.
+
+Choose button colors.
+
+Select a font from a controlled list.
+
+Select modern, classic or minimal themes.
+
+Adjust card style and border radius.
+
+Choose light or dark mode.
+
+Preview changes on mobile and desktop.
+
+Validate uploaded files. Store authorized assets in Supabase Storage with appropriate access policies. Restrict file type and size, and never permit executable uploads.
+
+Tab 3: Page Editor
+
+Create editable page sections for:
+
+Welcome.
+
+Login.
+
+Registration.
+
+Packages.
+
+Payment.
+
+Success and failure.
+
+Active session.
+
+Help and support.
+
+Terms and privacy.
+
+Allow the owner to edit permitted headings, descriptions, images, help content and section visibility.
+
+Do not let owners remove essential authentication controls, payment verification, security notices or mandatory legal disclosures.
+
+Use structured, validated page settings rather than executing arbitrary owner-provided JavaScript or HTML.
+
+Tab 4: Package Display
+
+Display the official package catalogue.
+
+Allow owners to:
+
+Enable or disable eligible packages for their own hotspot.
+
+Reorder package cards.
+
+Select a highlighted package.
+
+Edit permitted display descriptions.
+
+Preview package cards.
+
+Do not permit changes to official prices, durations, speed limits or other centrally controlled package terms.
+
+Tab 5: Authentication and Payment Display
+
+Allow the owner to choose which supported customer access methods are displayed:
+
+Account login.
+
+Registration.
+
+M-Pesa checkout.
+
+Voucher redemption.
+
+Show M-Pesa payment instructions based on the owner's actual integration configuration.
+
+Do not expose API secrets or callback credentials.
+
+Tab 6: Live Preview
+
+Create a working preview that updates immediately when the owner changes permitted settings.
+
+Include:
+
+Mobile preview.
+
+Desktop preview.
+
+Welcome page preview.
+
+Login preview.
+
+Package catalogue preview.
+
+Payment preview.
+
+Active session preview.
+
+Clearly label preview payments as test or demonstration flows. Never initiate real payments from the preview without a separate explicit checkout action.
+
+Tab 7: Save, Publish and Version History
+
+Provide:
+
+Save Draft.
+
+Preview Draft.
+
+Publish Changes.
+
+Discard Draft.
+
+Published status.
+
+Last published time.
+
+Version history.
+
+Restore Previous Version.
+
+Publish confirmation dialog.
+
+Store drafts and published versions separately. Validate the entire configuration before publishing. Keep an audit trail of who changed and published the portal.
+
+Published settings must only affect the correct tenant, hotspot and assigned routers.
+
+C. BACKEND AND DATABASE
+
+Create or update the following tables:
+
+portal_configs:
+
+id
+
+tenant_id
+
+portal_name
+
+business_display_name
+
+location_name
+
+welcome_heading
+
+welcome_description
+
+logo_path
+
+background_image_path
+
+primary_color
+
+secondary_color
+
+background_color
+
+text_color
+
+theme
+
+font_family
+
+default_language
+
+enabled_auth_methods
+
+support_phone
+
+support_email
+
+terms_url
+
+privacy_url
+
+post_login_destination
+
+status
+
+created_at
+
+updated_at
+
+portal_pages:
+
+id
+
+portal_config_id
+
+page_key
+
+page_content
+
+visibility_settings
+
+updated_at
+
+portal_package_assignments:
+
+id
+
+tenant_id
+
+portal_config_id
+
+official_package_id
+
+is_enabled
+
+display_order
+
+is_highlighted
+
+portal_drafts:
+
+id
+
+tenant_id
+
+portal_config_id
+
+configuration_json
+
+created_by
+
+created_at
+
+updated_at
+
+portal_versions:
+
+id
+
+tenant_id
+
+portal_config_id
+
+version_number
+
+published_configuration
+
+published_by
+
+published_at
+
+portal_router_assignments:
+
+id
+
+tenant_id
+
+portal_config_id
+
+router_id
+
+hotspot_identifier
+
+status
+
+Use foreign keys, indexes, validation and appropriate RLS policies. Adapt the schema to existing tables instead of duplicating existing functionality.
+
+D. TENANT SECURITY
+
+Enforce:
+
+Router owners can edit only their own portal settings.
+
+Router owners cannot change another owner's portal by altering a URL or request payload.
+
+Public portal visitors can read only the published, public-safe configuration for the correct portal.
+
+Drafts and unpublished configurations are private.
+
+Customer records, payment details and credentials are never included in public portal configuration.
+
+Uploaded assets are validated.
+
+All publish and restore actions are authorized and logged.
+
+Resolve the portal configuration from a trusted router or server-issued portal identifier. Never trust a tenant ID supplied by an unauthenticated browser without validating the association.
+
+E. ROUTER INTEGRATION
+
+Ensure the published portal can work with the actual supported router.
+
+Implement:
+
+Router-specific captive portal configuration.
+
+Redirect handling.
+
+Customer authentication.
+
+Payment return handling.
+
+Session authorization.
+
+Package speed and duration enforcement.
+
+Session expiry.
+
+Reconnection and failure handling.
+
+Do not claim a portal is operational on a router until the router configuration and authorization path have been tested.
+
+Keep the portal fast on low-cost Android devices and slow mobile connections.
+
+F. ACCEPTANCE TESTS
+
+Verify:
+
+Owner A cannot edit Owner B's portal.
+
+Draft changes do not affect the live portal before publishing.
+
+Published changes appear on the correct hotspot.
+
+Package prices come from the official catalogue.
+
+Payment success requires backend verification.
+
+Voucher redemption is secure.
+
+Mobile and desktop previews work.
+
+Previous published versions can be restored.
+
+Disconnected routers display useful error states.
+
+No secrets are exposed to the browser.
+
+Implement the portal builder as a complete working feature integrated with the existing BRISK Smart Connect system. Do not leave buttons nonfunctional or use hardcoded data for production operations.
+
+MASTER BUILD SPECIFICATION — BRISK SMART CONNECT
+
+1. PROJECT OVERVIEW
+
+Build BRISK Smart Connect, a complete, production-oriented, multi-tenant WiFi hotspot management and ISP billing SaaS platform.
+
+The platform must support multiple independent router owners, their customers, multiple physical routers and access points, captive portals, M-Pesa payments, vouchers, WhatsApp messaging, subscriptions, reporting and centralized administration.
+
+This is an original BRISK Smart Connect product. Do not copy another company's branding, source code or proprietary interface.
+
+Build a real full-stack application, not a static website or frontend-only demo.
+
+2. TECHNOLOGY STACK
+
+Frontend:
+
+React and TypeScript.
+
+Responsive layouts for mobile, tablet and desktop.
+
+React Router or an equivalent routing solution.
+
+Reusable components and a consistent design system.
+
+Real SVG or Lucide icons. Never use emojis as interface icons.
+
+Accessible forms, tables, charts, dialogs and navigation.
+
+Backend:
+
+Node.js server-side runtime.
+
+Supabase PostgreSQL database.
+
+Supabase Auth for authentication and account management.
+
+Supabase Storage for authorized files.
+
+Supabase Row Level Security (RLS).
+
+Supabase Edge Functions or secure backend routes for integrations.
+
+Scheduled jobs for expiry checks, reminders and subscription enforcement.
+
+Server-side secrets management.
+
+Webhooks for M-Pesa and WhatsApp events.
+
+Integrations:
+
+Safaricom Daraja API for M-Pesa.
+
+Meta WhatsApp Cloud API and optional supported providers.
+
+MikroTik RouterOS and HotSpot.
+
+RADIUS where appropriate for centralized authentication and accounting.
+
+Support adapters for Ubiquiti, TP-Link Omada and OpenWrt where their actual APIs permit.
+
+Email provider integration.
+
+Optional SMS gateway integration.
+
+Do not assume that every router supports the same API. Implement vendor-specific adapters and clearly report unsupported functions.
+
+3. BRAND AND UI DESIGN
+
+Brand: BRISK Smart Connect.
+
+Slogan: Smart WiFi, smart host, smarter you.
+
+Use a premium ISP management SaaS interface:
+
+Pink, orange and black as the primary brand colors.
+
+Subtle aurora gradients and restrained glassmorphism.
+
+Smooth transitions, floating cards and elegant charts.
+
+Clean typography, readable tables and clear status indicators.
+
+Real icons, not emojis.
+
+Mobile bottom navigation.
+
+Desktop sticky sidebar.
+
+Responsive forms and dashboards.
+
+Dark and light themes if practical.
+
+Loading skeletons, empty states, confirmation dialogs and error messages.
+
+Images and illustrations only where they improve the interface.
+
+Consistent branding on all portal and dashboard pages.
+
+Do not sacrifice usability for animations.
+
+4. USER ROLES
+
+Implement role-based permissions for:
+
+A. Super Admin
+
+Controls the entire BRISK platform.
+
+Manages router owners, subscriptions, customers, routers, payment records, integrations, support and system settings.
+
+Approves, suspends or bans router owner accounts.
+
+Manages the official package catalogue.
+
+Audits administrative actions.
+
+B. Router Owner
+
+Operates an independent WiFi business.
+
+Manages authorized routers, access points, customers, sessions, payments, vouchers and reports.
+
+Connects their own M-Pesa credentials.
+
+Connects their own WhatsApp Business API provider.
+
+Configures their own notification preferences.
+
+Manages their own business profile and subscription.
+
+Cannot access another owner's private information.
+
+Cannot create or modify the platform-wide official package catalogue.
+
+Cannot change Super Admin settings.
+
+C. Customer
+
+Registers or logs in.
+
+Connects to a captive portal.
+
+Buys WiFi packages using supported payment methods.
+
+Uses valid vouchers.
+
+Checks their active session and package expiry.
+
+Views payment receipts and transaction history.
+
+Manages their phone number and notification consent.
+
+Contacts support.
+
+D. Optional Staff
+
+Router owners can create staff accounts if enabled.
+
+Staff permissions must be limited by the owner.
+
+Support role, cashier role, network operator role and read-only reporting role may have different permissions.
+
+Staff must never receive access to secrets unless explicitly authorized and technically necessary.
+
+5. CUSTOMER CAPTIVE PORTAL
+
+Create a fast, mobile-first captive portal for customers who connect to a WiFi hotspot.
+
+Portal pages:
+
+Welcome page.
+
+Login page.
+
+Registration page.
+
+Package catalogue.
+
+M-Pesa checkout.
+
+Payment processing page.
+
+Payment success and failure pages.
+
+Voucher login.
+
+Active session page.
+
+Usage and expiry page.
+
+Transaction history.
+
+Receipt page.
+
+Help and support page.
+
+Terms and privacy page.
+
+Portal appearance:
+
+Display BRISK Smart Connect branding or the authorized router owner's configured business branding.
+
+Display the hotspot or location name.
+
+Show available packages with prices, duration, speed and data allowance.
+
+Provide a clear Buy Package button.
+
+Offer M-Pesa and voucher access.
+
+Show payment and connection status.
+
+Keep the portal lightweight for slow mobile connections.
+
+Portal workflow:
+
+Customer connects to the WiFi network.
+
+The router redirects unauthenticated users to the captive portal.
+
+The portal identifies the correct tenant, hotspot and router using a trusted configuration.
+
+The customer selects an available official package.
+
+The customer pays through M-Pesa or enters a voucher.
+
+The backend verifies payment or validates the voucher.
+
+The backend authorizes the correct customer session on the correct router.
+
+The portal displays connection status, expiry and applicable usage information.
+
+The router enforces time, data and speed restrictions where supported.
+
+Expired or exhausted sessions are restricted according to the package rules.
+
+Never trust client-supplied tenant IDs, router IDs, prices or payment status without server-side validation.
+
+6. ROUTER OWNER REGISTRATION AND LOGIN
+
+Create:
+
+Owner registration.
+
+Email verification.
+
+Secure login and logout.
+
+Password reset.
+
+Optional multifactor authentication.
+
+Business profile setup.
+
+Account verification.
+
+Subscription selection.
+
+Account activation workflow.
+
+Suspended account screen.
+
+Session management.
+
+Login history.
+
+Security alerts.
+
+Owner registration fields:
+
+Business name.
+
+Owner's full name.
+
+Email address.
+
+Phone number.
+
+Business location.
+
+Password.
+
+Terms and privacy acceptance.
+
+Account workflow:
+
+Owner registers.
+
+Owner verifies the required contact details.
+
+Platform applies its approval and subscription rules.
+
+Owner completes onboarding.
+
+Owner connects a router.
+
+Owner configures payment and messaging integrations.
+
+Owner tests the portal.
+
+Owner starts selling WiFi.
+
+Only one initial Super Admin account should be provisioned through a secure setup process. Never expose an administrator creation button to the public.
+
+7. ROUTER OWNER DASHBOARD
+
+Dashboard cards:
+
+Total customers.
+
+Customers currently online.
+
+Active sessions.
+
+Connected routers.
+
+Offline routers.
+
+Revenue today.
+
+Revenue this week.
+
+Revenue this month.
+
+Successful payments.
+
+Pending payments.
+
+Failed payments.
+
+Active vouchers.
+
+Expiring customer packages.
+
+Router uptime and network alerts.
+
+Dashboard charts:
+
+Revenue over time.
+
+Payment method distribution.
+
+Package popularity.
+
+Customer growth.
+
+Session duration.
+
+Router traffic and usage where available.
+
+All metrics must come from real database records or verified router telemetry. Do not use hardcoded demonstration numbers.
+
+Dashboard navigation:
+
+Overview.
+
+My Routers.
+
+Access Points.
+
+Connected Users.
+
+Customers.
+
+Packages.
+
+Vouchers.
+
+Payments.
+
+Revenue and Reports.
+
+M-Pesa Integration.
+
+WhatsApp Integration.
+
+Email and SMS Integration.
+
+Notifications.
+
+Support.
+
+Staff and Permissions.
+
+Subscription and Billing.
+
+Account Settings.
+
+Security and Audit History.
+
+8. ROUTER MANAGEMENT
+
+Create a router management page with:
+
+Add router.
+
+Edit router.
+
+View router details.
+
+Test connectivity.
+
+View online/offline status.
+
+View last successful connection.
+
+View router vendor and model.
+
+View firmware and software version where available.
+
+View CPU, memory and interface status where available.
+
+View connected users.
+
+View traffic statistics.
+
+View configuration status.
+
+View errors and diagnostic logs.
+
+Reconnect or synchronize configuration.
+
+Restart router only where supported and authorized.
+
+Remove or disable router.
+
+Assign a router to a business location.
+
+Configure supported hotspot settings.
+
+Router registration:
+
+Router name.
+
+Vendor.
+
+Model.
+
+Location.
+
+Management address.
+
+API connection settings.
+
+Authentication method.
+
+Associated access points.
+
+Status.
+
+Security:
+
+Never expose router credentials to the browser after saving.
+
+Encrypt sensitive credentials.
+
+Restrict management access to trusted backend services.
+
+Validate every router management action.
+
+Record who performed each action.
+
+Do not automatically expose router management ports to the public internet.
+
+Provide a secure VPN, private network or appropriately secured management connection where required.
+
+9. MAIN ROUTER AND ACCESS POINTS
+
+Create a network topology management module.
+
+Network hierarchy: BRISK platform → Router owner → Main router → Access points → Customer devices.
+
+Features:
+
+Register the main router.
+
+Add access points.
+
+Link access points to the correct main router.
+
+Assign names and locations.
+
+Display a network topology map.
+
+Show each device's online/offline state.
+
+Display associated customers where supported.
+
+View connection failures.
+
+Detect duplicate device records.
+
+Record network changes.
+
+Display alerts when a main router or access point becomes unreachable.
+
+Do not assume that every access point supports remote management. Explain when an access point must be configured through its vendor controller or another supported management method.
+
+10. CONNECTED USERS AND SESSIONS
+
+Create a live sessions table:
+
+Customer name or account identifier.
+
+Device MAC address where legitimately available.
+
+IP address.
+
+Router.
+
+Access point if available.
+
+Package.
+
+Login time.
+
+Remaining time.
+
+Data used.
+
+Session status.
+
+Features:
+
+Search and filter sessions.
+
+View session details.
+
+Disconnect an authorized session.
+
+Block or unblock a device when authorized.
+
+View session accounting.
+
+Display expired sessions.
+
+View failed login attempts.
+
+Reconcile router sessions with database records.
+
+Never claim live updates if the router integration only provides periodic polling.
+
+11. OFFICIAL WIFI PACKAGE CATALOGUE
+
+Only Super Admin can create, edit or remove official platform packages.
+
+Create a central catalogue supporting prices from KES 450 to KES 3,500 for 30-day subscriptions, plus other explicitly configured short-term packages.
+
+Package fields:
+
+Package name.
+
+Price in KES.
+
+Validity duration.
+
+Speed limit.
+
+Upload and download limits.
+
+Data allowance, if applicable.
+
+Session limit.
+
+Concurrent device limit.
+
+Supported router types.
+
+Available locations.
+
+Renewal rules.
+
+Description.
+
+Status.
+
+Router owners may:
+
+View the official catalogue.
+
+Assign eligible packages to supported routers.
+
+Enable or disable package availability on their own routers where permitted.
+
+View package sales and performance.
+
+Router owners may not:
+
+Create new official packages.
+
+Change official prices.
+
+Alter centrally defined package durations.
+
+Bypass package eligibility rules.
+
+All package limits must be enforced by the router, RADIUS or another real authorization mechanism. A displayed speed limit alone does not enforce network speed.
+
+12. M-PESA INTEGRATION FOR EACH ROUTER OWNER
+
+Create a dedicated M-Pesa Integration page.
+
+Each router owner must be able to configure their own authorized Safaricom Daraja application and supported payment account.
+
+Settings:
+
+Environment: Sandbox or Production.
+
+Consumer Key.
+
+Consumer Secret.
+
+Business shortcode.
+
+PayBill or Till configuration.
+
+Passkey when required by the selected API.
+
+Account reference settings.
+
+Callback configuration.
+
+Integration status.
+
+Last successful connection test.
+
+Last successful payment.
+
+Error log.
+
+Rotate credentials.
+
+Disconnect integration.
+
+Use the actual supported Daraja API and registered business configuration. Do not hardcode a universal shortcode or passkey for all tenants.
+
+Payment workflow:
+
+Customer selects a package.
+
+Backend obtains the authoritative package price and tenant.
+
+Backend creates a pending payment record with a unique transaction reference.
+
+Backend initiates the supported M-Pesa payment request.
+
+Customer receives the payment prompt.
+
+Safaricom calls the configured HTTPS callback.
+
+Backend validates the callback against the transaction and expected amount, tenant, reference and available provider identifiers.
+
+Backend marks the payment successful, failed or pending.
+
+Duplicate callbacks are processed idempotently.
+
+Only confirmed successful payments activate packages.
+
+Customer and router owner see the updated transaction.
+
+The system issues a receipt.
+
+Include:
+
+STK Push.
+
+Callback processing.
+
+Transaction status checks where supported.
+
+Timeout handling.
+
+Retry policies.
+
+Reconciliation for delayed callbacks.
+
+Failed and cancelled payment handling.
+
+Refund records and administrator-controlled refund workflows where supported.
+
+Payment audit history.
+
+Never trust a browser redirect as proof of payment. Never activate internet merely because a customer enters a transaction code.
+
+For payment integration errors, show useful messages without revealing secrets.
+
+13. OWNER-SPECIFIC WHATSAPP API
+
+Create a WhatsApp Integration page for each router owner.
+
+Support:
+
+Meta WhatsApp Cloud API.
+
+Twilio WhatsApp API.
+
+Other compatible providers through separate adapters.
+
+Fields:
+
+Provider.
+
+WhatsApp Business Account ID where applicable.
+
+Phone Number ID where applicable.
+
+Access token or provider credentials.
+
+Webhook configuration.
+
+Webhook verification.
+
+Connection status.
+
+Test message.
+
+Delivery status.
+
+Template management.
+
+Notification preferences.
+
+Each owner must connect an authorized WhatsApp Business account.
+
+Automated message types:
+
+Payment confirmation.
+
+Payment failure.
+
+Receipt notification.
+
+Package activation.
+
+Package expiry reminder.
+
+Voucher delivery.
+
+Support ticket update.
+
+Router outage notification to the owner.
+
+Subscription renewal reminder.
+
+Create configurable templates with supported variables such as:
+
+Customer name.
+
+Business name.
+
+Package name.
+
+Amount paid.
+
+Transaction reference.
+
+Activation time.
+
+Expiry time.
+
+Support contact.
+
+Messaging requirements:
+
+Respect customer consent and opt-out preferences.
+
+Use approved message templates where the provider requires them.
+
+Track sent, delivered, failed and read states when provided.
+
+Retry temporary failures safely.
+
+Avoid sending duplicate notifications.
+
+Apply provider rate limits.
+
+Never store access tokens in localStorage or expose them in frontend code.
+
+Allow the owner to disable each notification type.
+
+14. EMAIL AND OPTIONAL SMS
+
+Create integration settings for:
+
+Email provider.
+
+SMTP or supported email API.
+
+Sender name.
+
+Verified sender address.
+
+Connection test.
+
+Delivery logs.
+
+Optional SMS provider credentials.
+
+SMS balance and delivery status when the provider supports them.
+
+Use email for:
+
+Account verification.
+
+Password reset.
+
+Receipts.
+
+Important security alerts.
+
+Subscription notifications.
+
+Support responses.
+
+Use SMS only where configured and permitted.
+
+15. VOUCHER MANAGEMENT
+
+Features:
+
+Generate individual vouchers.
+
+Generate voucher batches.
+
+Assign a voucher to a package.
+
+Create unique codes.
+
+Export authorized voucher lists.
+
+Print voucher sheets.
+
+Set validity and expiration.
+
+Mark vouchers sold or unsold.
+
+Track redemption.
+
+Revoke unused vouchers.
+
+Prevent reuse unless the configured package explicitly permits it.
+
+Associate sales with an owner and authorized cashier.
+
+Report voucher revenue.
+
+Voucher redemption must be validated by the backend and recorded atomically to prevent two devices from redeeming the same single-use voucher.
+
+16. CUSTOMER MANAGEMENT
+
+Customer record:
+
+Customer ID.
+
+Name.
+
+Phone number.
+
+Email when provided.
+
+Registration date.
+
+Tenant association.
+
+Purchase history.
+
+Active packages.
+
+Device/session history.
+
+Payment history.
+
+Support tickets.
+
+Notification consent.
+
+Account status.
+
+Features:
+
+Search and filter customers.
+
+View transaction history.
+
+View current sessions.
+
+View active and expired packages.
+
+Restrict abusive accounts with an audit trail.
+
+Correct customer details with permission.
+
+Export authorized reports.
+
+Respond to support requests.
+
+Never display one router owner's customers to another owner.
+
+17. CUSTOMER ACCOUNT
+
+Create:
+
+Customer registration.
+
+Login.
+
+Password reset.
+
+Profile.
+
+Active packages.
+
+Session usage.
+
+Data usage where supported.
+
+Remaining time.
+
+Expiry.
+
+Transactions.
+
+Downloadable receipts.
+
+Voucher redemption.
+
+Notification settings.
+
+Support tickets.
+
+Logout from available sessions where supported.
+
+Display accurate status from the backend and router accounting. Clearly distinguish unavailable telemetry from zero usage.
+
+18. TRANSACTIONS AND REVENUE
+
+Transaction fields:
+
+Transaction ID.
+
+Tenant ID.
+
+Customer ID.
+
+Package ID.
+
+Amount.
+
+Currency.
+
+Payment provider.
+
+Provider transaction reference.
+
+Status.
+
+Initiated time.
+
+Confirmed time.
+
+Callback status.
+
+Receipt reference.
+
+Statuses:
+
+Pending.
+
+Successful.
+
+Failed.
+
+Cancelled.
+
+Reversed or refunded where applicable.
+
+Features:
+
+Search transactions.
+
+Filter by date, package, status and provider.
+
+View transaction details.
+
+Download receipts.
+
+Export CSV reports.
+
+Calculate revenue from confirmed transactions.
+
+Separate gross sales, refunds and net revenue.
+
+Prevent duplicate payment records.
+
+Preserve an immutable audit history of status changes.
+
+Never count pending payments as confirmed revenue.
+
+19. SUBSCRIPTIONS AND PLATFORM BILLING
+
+Create subscription management for router owners.
+
+Support configurable subscription tiers and billing periods.
+
+Features:
+
+Subscription plans.
+
+Trial period where configured.
+
+Plan price and limits.
+
+Start and expiry dates.
+
+Renewal reminders.
+
+Payment history.
+
+Upgrade and downgrade rules.
+
+Grace period.
+
+Expired subscription handling.
+
+Account suspension rules.
+
+Subscription receipts.
+
+Admin-managed discounts.
+
+The Super Admin controls subscription prices and rules.
+
+Do not automatically disable customer internet solely because a router owner's subscription expires without applying the published business rules and showing warnings.
+
+20. SUPER ADMIN DASHBOARD
+
+Create a separate protected administration area.
+
+Pages:
+
+Admin Overview.
+
+Router Owners.
+
+Customers.
+
+Routers.
+
+Access Points.
+
+Official Packages.
+
+Transactions.
+
+Payment Integrations.
+
+WhatsApp Integrations.
+
+Owner Subscriptions.
+
+Vouchers.
+
+Referrals if enabled.
+
+Support Tickets.
+
+Reports and Analytics.
+
+System Health.
+
+Audit Logs.
+
+Platform Settings.
+
+Admin capabilities:
+
+Approve, suspend and reactivate owners.
+
+Review owner verification.
+
+Inspect aggregate platform performance.
+
+Manage official packages.
+
+Manage subscription tiers.
+
+Investigate payment disputes.
+
+Inspect integration health without unnecessarily revealing secrets.
+
+Review failed webhooks.
+
+Investigate router connection failures.
+
+Suspend fraudulent accounts with recorded reasons.
+
+View administrative activity.
+
+Manage system announcements.
+
+Configure default security policies.
+
+Require elevated authorization for destructive actions. Log administrator changes.
+
+21. REFERRALS — OPTIONAL MODULE
+
+If enabled by the Super Admin:
+
+Generate unique referral codes.
+
+Track referred registrations.
+
+Attribute eligible confirmed purchases.
+
+Calculate commission using configurable rules.
+
+Prevent self-referrals and duplicate claims.
+
+Display referral history.
+
+Record approved and rejected commissions.
+
+Provide an auditable withdrawal workflow if payouts are enabled.
+
+Do not pay commissions merely because someone registers or starts a pending payment.
+
+22. SUPPORT AND NOTIFICATIONS
+
+Support features:
+
+Create tickets.
+
+Set ticket priority.
+
+Assign tickets.
+
+Add replies.
+
+Attach permitted files.
+
+Track status.
+
+Send customer updates.
+
+Close and reopen tickets.
+
+Display response history.
+
+Notification center:
+
+Payment alerts.
+
+Router offline alerts.
+
+Integration failures.
+
+Expiring packages.
+
+Subscription expiry.
+
+Support updates.
+
+Security alerts.
+
+Allow users to configure non-essential notifications. Never allow users to disable critical security logging.
+
+23. DATABASE SCHEMA
+
+Create normalized PostgreSQL tables with UUID primary keys and appropriate foreign keys.
+
+Required tables:
+
+profiles
+
+roles or role assignments
+
+businesses
+
+business_members
+
+owner_subscriptions
+
+subscription_plans
+
+routers
+
+access_points
+
+router_credentials
+
+network_locations
+
+customers
+
+customer_devices
+
+customer_sessions
+
+official_packages
+
+router_package_assignments
+
+vouchers
+
+voucher_redemptions
+
+payments
+
+payment_events
+
+payment_receipts
+
+payment_integrations
+
+whatsapp_integrations
+
+messaging_templates
+
+message_logs
+
+email_integrations
+
+notification_preferences
+
+notifications
+
+support_tickets
+
+support_messages
+
+referrals if enabled
+
+commissions if enabled
+
+audit_logs
+
+platform_settings
+
+webhook_events
+
+Database requirements:
+
+Use foreign keys and indexes.
+
+Store monetary amounts in an appropriate exact numeric or integer minor-unit representation.
+
+Store timestamps consistently in UTC and display them in the user's local timezone.
+
+Store currency explicitly.
+
+Enforce unique provider transaction identifiers where appropriate.
+
+Add tenant_id to tenant-owned records.
+
+Use database transactions for payment and voucher state changes.
+
+Use migrations and version-controlled schema changes.
+
+Avoid unnecessary duplication of customer and transaction data.
+
+24. ROW LEVEL SECURITY AND AUTHORIZATION
+
+Enable RLS on all exposed tenant-owned tables.
+
+Implement policies so:
+
+Customers can access only their own authorized records.
+
+Router owners can access only records belonging to their businesses.
+
+Business staff can access only records allowed by their permissions.
+
+Super Admin access requires verified server-side authorization.
+
+Public portal visitors cannot query private business data.
+
+Integration secrets cannot be selected by ordinary frontend clients.
+
+Public registration cannot assign privileged roles.
+
+A user cannot elevate permissions by modifying a request payload.
+
+Use the Supabase service-role key only on trusted server-side code. Never put it in the frontend.
+
+25. API AND BACKEND MODULES
+
+Create organized server-side modules for:
+
+Authentication and authorization.
+
+Business and tenant management.
+
+Package catalogue.
+
+Router registration and connectivity.
+
+Network authorization.
+
+Customer sessions.
+
+M-Pesa initiation and callbacks.
+
+Payment reconciliation.
+
+WhatsApp messaging and webhooks.
+
+Email and SMS.
+
+Voucher creation and redemption.
+
+Subscription billing.
+
+Notifications.
+
+Reporting.
+
+Support.
+
+Audit logs.
+
+Use schema validation, authentication, authorization, rate limiting and safe error handling for every sensitive endpoint.
+
+Do not create fake API endpoints that always return success.
+
+26. SECURITY AND RELIABILITY
+
+Implement:
+
+Server-side secret management.
+
+Encrypted integration credentials.
+
+Password security through the authentication provider.
+
+RLS and server-side permission checks.
+
+CSRF protection where applicable.
+
+Secure cookies and appropriate session handling.
+
+Rate limiting.
+
+Input validation.
+
+Webhook signature or authenticity verification where supported.
+
+Idempotency for payment callbacks.
+
+Audit logging.
+
+Secret rotation.
+
+Safe database migrations.
+
+Backup and recovery procedures.
+
+Monitoring and error reporting.
+
+Redaction of credentials from logs.
+
+Protection against SQL injection and cross-site scripting.
+
+Explicit handling of retries and timeouts.
+
+Never claim that an integration is connected until an actual test succeeds.
+
+27. NETWORK AUTHORIZATION
+
+Payment processing and WiFi authorization must be separate but coordinated operations.
+
+After confirmed payment:
+
+Create or update the customer's entitlement.
+
+Queue the authorization request.
+
+Apply the package to the correct router or RADIUS service.
+
+Verify authorization where supported.
+
+Mark the entitlement active only when the activation workflow has reached the appropriate confirmed state.
+
+Retry temporary network failures safely.
+
+Notify the customer of the result.
+
+Record the operation and any error.
+
+If payment succeeds but the router is offline, preserve the confirmed payment, mark activation as pending, alert the owner and retry safely. Do not charge the customer again automatically.
+
+When a package expires, remove or restrict authorization according to the configured rules.
+
+28. DESIGN ALL PAGES COMPLETELY
+
+Do not leave placeholder pages.
+
+Every page must include:
+
+A real page layout.
+
+Loading and error states.
+
+Form validation.
+
+Search and filtering where appropriate.
+
+Pagination for large datasets.
+
+Permission checks.
+
+Real backend queries and mutations.
+
+Empty states.
+
+Confirmation dialogs for risky operations.
+
+Responsive mobile and desktop layouts.
+
+Use consistent navigation, breadcrumbs, status labels and accessible controls.
+
+29. TESTING REQUIREMENTS
+
+Create tests for:
+
+Authentication and account roles.
+
+Tenant isolation.
+
+RLS policies.
+
+Package pricing integrity.
+
+M-Pesa callback validation.
+
+Duplicate callbacks.
+
+Pending, successful and failed payments.
+
+Voucher double redemption.
+
+Router offline conditions.
+
+Package expiry.
+
+WhatsApp delivery failures.
+
+Subscription expiration.
+
+Unauthorized administrative actions.
+
+Responsive layouts.
+
+Database migrations.
+
+Provide a sandbox mode for testing payment integrations. Never simulate a successful production payment by changing the database directly from the browser.
+
+Message templates.
+
+INSTRUCTIONS TO THE AI DEVELOPER
+
+Start by creating the architecture, folder structure, database schema, migrations, authentication, and RLS policies.
+
+Then implement the application phase by phase.
+
+Maintain a single coherent project. Do not rebuild unrelated pages from scratch every time a new feature is added.
+
+Before completing each phase:
+
+Run available tests.
+
+Resolve TypeScript and build errors.
+
+Verify that routes work.
+
+Verify that forms save real records.
+
+Verify authorization.
+
+Verify that mobile navigation works.
+
+Document missing provider credentials.
+
+Clearly distinguish working integrations from mocked or unconfigured integrations.
+
+Never invent API keys, provider credentials, successful payment responses or router connection status.
+
+Do not claim the platform is production-ready until real integrations, security policies, router authorization and end-to-end tests have been verified.
+
+The final product must be a complete BRISK Smart Connect multi-tenant WiFi billing and ISP management platform, with a customer captive portal and independent router owner accounts that can securely connect their own M-Pesa and WhatsApp APIs.
+
+BRISK SMART CONNECT — COMPLETE GOOGLE AI STUDIO BUILD SPECIFICATION
+
+1. PROJECT OVERVIEW
+
+Build BRISK Smart Connect, a complete multi-tenant WiFi billing and ISP management SaaS platform inspired by the general capabilities of VunaFlow. Use original branding, original layouts, and original code.
+
+The platform must allow multiple independent internet service providers (ISPs) and WiFi business owners to manage their customers, routers, access points, internet packages, M-Pesa payments, vouchers, subscriptions, connected devices, reports, and support from one secure dashboard.
+
+This must be a functional full-stack system, not a static website, prototype, or collection of disconnected pages.
+
+Core requirements
+
+- Multi-tenant SaaS supporting multiple ISP businesses.
+- One Super Admin role for global platform administration.
+- Router Owner role for each ISP tenant.
+- Staff accounts with configurable permissions.
+- Customer accounts and a mobile-friendly captive portal.
+- M-Pesa STK Push payments through Safaricom Daraja.
+- Voucher generation, printing, redemption, expiry, and revocation.
+- Automated internet activation after verified payment or valid voucher redemption.
+- Support for multiple router vendors through independent adapters.
+- MikroTik, UniFi, TP-Link Omada, OpenWrt, and optional FreeRADIUS integrations.
+- Global internet package catalogue controlled by Super Admin.
+- ISP subscription management separate from customer internet billing.
+- Financial ledger, receipts, refunds, reconciliation, and reports.
+- Secure database, API, background jobs, and audit logs.
+- Original responsive design using real icons.
+- Full testing, deployment documentation, and production readiness checks.
+
+Do not copy VunaFlow's proprietary code, branding, or exact interface.
+
+2. TECHNOLOGY STACK
+
+Use:
+
+- React + TypeScript + Vite for the frontend.
+- Tailwind CSS and accessible reusable UI components.
+- Lucide icons for interface icons.
+- Supabase PostgreSQL for relational data.
+- Supabase Auth for identity and authentication.
+- PostgreSQL Row Level Security for tenant isolation.
+- A secure TypeScript backend using Fastify or NestJS.
+- Durable background jobs and a worker service.
+- Safaricom Daraja API for M-Pesa.
+- Vendor-specific network adapters.
+- FreeRADIUS where required for supported authentication and accounting.
+- Supabase Storage for private documents and authorized uploads.
+- Vercel or equivalent for the frontend.
+- Managed container hosting for the API and worker.
+- Structured logs, error monitoring, metrics, backups, and alerts.
+
+Google AI Studio is the code-generation environment, not the production database, payment processor, or router-management service.
+
+Create separate development, staging, and production environments.
+
+3. BRANDING AND UI DESIGN
+
+Brand: BRISK Smart Connect.
+
+Design a premium ISP operations dashboard with an original identity.
+
+Design requirements
+
+- Core colors: deep navy, blue, white, and restrained accent colors.
+- Use a clean, professional, modern interface.
+- Use real SVG/Lucide icons. Never use emoji as interface icons.
+- Use responsive cards, charts, tables, badges, dialogs, filters, and forms.
+- Desktop layout: sticky sidebar and top navigation.
+- Mobile layout: responsive navigation, compact cards, and bottom navigation where appropriate.
+- Customer captive portal: lightweight, mobile-first, fast-loading.
+- Use skeleton loaders for loading states.
+- Provide empty states, error messages, confirmation dialogs, and success feedback.
+- Include accessible labels, keyboard navigation, and suitable color contrast.
+- Include light and dark themes if practical.
+- Use charts for revenue, connected clients, traffic, payment success, and router health.
+- Never display fake statistics as real business data.
+- Seed demonstration data only in development or explicitly labelled demo mode.
+- Keep tenant branding separate so each ISP can configure its logo, business name, and portal appearance.
+
+Every button, navigation link, form, chart filter, and table action must work.
+
+4. USER ROLES AND PERMISSIONS
+
+A. Super Admin
+
+Can:
+
+- View the platform overview.
+- Manage ISP tenants and owner accounts.
+- Approve, suspend, reactivate, or close tenant accounts under documented policies.
+- Manage platform subscription plans.
+- Manage global internet package definitions and versions.
+- Set package availability and platform-wide rules.
+- Monitor routers and integration health.
+- View platform payment records and subscription revenue.
+- Review payment reconciliation and authorized refunds.
+- View platform-wide reports and security alerts.
+- Manage support escalation.
+- Review audit logs.
+- Configure platform settings and integration policies.
+- Manage referral and commission policies if enabled.
+- Manage administrator permissions.
+- Review failed jobs and network provisioning errors.
+
+Super Admin access must be explicitly authorized server-side and audited. Do not allow ordinary users to assign themselves Super Admin privileges.
+
+B. Router Owner
+
+Can:
+
+- Manage their ISP profile and business details.
+- View their own dashboard and reports.
+- Manage sites, routers, and access points.
+- Connect supported network equipment.
+- View connected clients and sessions.
+- Manage their own customers.
+- Enable or disable globally approved packages where permitted.
+- Generate and print vouchers for approved packages.
+- View payments collected for their business.
+- Review receipts, reconciliation status, and refunds.
+- View subscription expiry and platform subscription details.
+- Manage permitted staff members.
+- Configure their own authorized payment credentials.
+- Configure notification providers where supported.
+- View network alerts and support tickets.
+- Configure portal branding.
+- Export authorized reports.
+- Review their audit history.
+
+Router owners must not create or change global internet package definitions. They may only enable or disable packages that the platform permits their tenant to sell.
+
+C. Staff
+
+Support configurable permissions for:
+
+- Customer management.
+- Voucher generation.
+- Payment lookup.
+- Financial reports.
+- Network monitoring.
+- Router management.
+- Support tickets.
+- Read-only access.
+
+Staff must not automatically inherit owner or Super Admin permissions.
+
+D. Customer
+
+Can:
+
+- Register and sign in.
+- Verify their email or phone where required.
+- Browse available internet packages.
+- Purchase a package through M-Pesa.
+- Redeem a valid voucher.
+- View their package and expiry.
+- View usage where supported.
+- View payment history and receipts.
+- Manage their profile and devices.
+- Receive notifications.
+- Submit support tickets.
+- Use referral features if enabled.
+
+Customers must never access another customer's records or internal router administration.
+
+5. MULTI-TENANT SYSTEM
+
+Create a separate tenant workspace for every ISP business.
+
+Tenant onboarding
+
+1. User registers.
+2. User verifies their account.
+3. Backend creates a tenant.
+4. Backend assigns the first owner membership.
+5. Owner selects an available BRISK SaaS subscription plan.
+6. Owner completes required business and payment configuration.
+7. Owner connects a supported router or controller.
+8. Owner configures permitted packages and customer access.
+9. Owner can begin onboarding customers after the required checks pass.
+
+Each tenant must have its own:
+
+- Customers.
+- Staff memberships.
+- Sites.
+- Routers and access points.
+- Orders.
+- Payments.
+- Vouchers.
+- Entitlements.
+- Network sessions.
+- Support tickets.
+- Reports.
+- Integration configurations.
+- Audit events.
+
+Enforce tenant isolation through database relationships, Row Level Security, backend authorization, and automated cross-tenant security tests.
+
+Never trust a tenant ID supplied by the browser without verifying the user's membership.
+
+6. COMPLETE PAGE LIST
+
+Implement these routes as React pages within one shared application.
+
+PUBLIC WEBSITE
+
+Page 1: "/" — Homepage
+
+Include:
+
+- BRISK Smart Connect logo.
+- Navigation.
+- Hero section.
+- Product overview.
+- WiFi billing features.
+- Router integration overview.
+- M-Pesa and voucher payment explanation.
+- SaaS pricing.
+- Benefits for ISP owners.
+- Frequently asked questions.
+- Contact and support information.
+- Login and registration actions.
+- Privacy policy and terms.
+- SEO metadata and social sharing metadata.
+
+Use original content and design.
+
+Page 2: "/pricing" — Platform pricing
+
+Display BRISK SaaS subscription plans.
+
+Include:
+
+- Plan name.
+- Price and billing interval.
+- Router limits.
+- Customer limits.
+- Staff limits.
+- Supported features.
+- Trial terms.
+- Upgrade and downgrade actions.
+- Subscription status.
+- Payment history.
+
+Keep SaaS pricing separate from internet package prices.
+
+Page 3: "/login" — Login
+
+Include:
+
+- Email or approved login identifier.
+- Password.
+- Show/hide password.
+- Remember-session option where appropriate.
+- Forgot-password link.
+- Login validation.
+- Rate limiting.
+- Authentication error handling.
+- Redirect based on authorized role.
+- MFA challenge for privileged accounts where enabled.
+
+Page 4: "/register" — Registration
+
+Include:
+
+- Full name.
+- Email.
+- Phone number.
+- Password.
+- Confirm password.
+- Terms acceptance.
+- Email verification.
+- Optional phone verification.
+- Account creation status.
+
+Create tenant ownership through a trusted backend operation, not through user-controlled role fields.
+
+Page 5: "/forgot-password"
+
+Allow secure password recovery through Supabase Auth.
+
+Use expiring recovery links, generic responses that do not reveal whether an account exists, and safe redirect URLs.
+
+---
+
+SUPER ADMIN PAGES
+
+Page 6: "/admin" — Super Admin dashboard
+
+Display:
+
+- Total tenants.
+- Active and suspended tenants.
+- Active platform subscriptions.
+- Platform subscription revenue.
+- Payment processing status.
+- Total customers across tenants.
+- Connected and offline routers.
+- Failed provisioning jobs.
+- Payment callback delays.
+- Support ticket summary.
+- Recent security events.
+- Platform health indicators.
+
+Filters must include date range, tenant, status, and payment provider where relevant.
+
+All statistics must come from authorized server-side queries.
+
+Page 7: "/admin/tenants"
+
+Include:
+
+- Tenant search.
+- Tenant name and identifier.
+- Owner details.
+- Registration date.
+- Subscription plan.
+- Subscription status.
+- Customer and router counts.
+- Verification status.
+- Tenant details.
+- Approve, suspend, reactivate, and close actions.
+- Suspension reason.
+- Audit history.
+
+Do not erase financial records when a tenant is suspended or closed.
+
+Page 8: "/admin/users"
+
+Include:
+
+- User search.
+- Role.
+- Tenant membership.
+- Account status.
+- Verification status.
+- Last login where available.
+- Active sessions where supported.
+- Permission review.
+- Account suspension.
+- Session revocation.
+- Audit history.
+
+Require explicit authorization for privileged actions.
+
+Page 9: "/admin/packages"
+
+Create and manage global internet packages.
+
+Each package must support:
+
+- Name and description.
+- Price in KES or another explicitly supported currency.
+- Validity duration.
+- Access type.
+- Download speed profile.
+- Upload speed profile.
+- Data quota.
+- Device limit.
+- Supported router capabilities.
+- Tenant eligibility.
+- Availability status.
+- Effective dates.
+- Package version.
+
+A package may be hourly, daily, weekly, or monthly if the platform allows that duration.
+
+Do not silently change the price or terms of existing orders when a package is updated. Create a new package version.
+
+Router owners cannot create global packages.
+
+Page 10: "/admin/subscriptions"
+
+Manage BRISK SaaS subscriptions.
+
+Include:
+
+- Subscription plan.
+- Tenant.
+- Start and renewal dates.
+- Trial dates.
+- Payment status.
+- Grace period.
+- Invoice history.
+- Upgrade and downgrade history.
+- Cancellation.
+- Suspension policy.
+
+A SaaS subscription must not be confused with a customer's internet subscription.
+
+Page 11: "/admin/payments"
+
+Include:
+
+- Payment search.
+- Provider transaction reference.
+- Order reference.
+- Tenant.
+- Amount and currency.
+- Payment status.
+- Provider callback status.
+- Reconciliation status.
+- Refund history.
+- Failed transaction details.
+- Duplicate event detection.
+- Authorized refund actions.
+
+Never provide a button that simply marks a payment as successful without a trusted verification or reconciliation process.
+
+Page 12: "/admin/routers"
+
+Include:
+
+- Tenant.
+- Vendor.
+- Model.
+- Site.
+- Connection status.
+- Integration health.
+- Firmware version where available.
+- Last contact.
+- Supported capabilities.
+- Provisioning failures.
+- Credential rotation status.
+- Authorized diagnostic actions.
+
+Never reveal router passwords or secret tokens in this table.
+
+Page 13: "/admin/reports"
+
+Include:
+
+- Platform revenue.
+- Tenant subscription revenue.
+- Internet payment volume.
+- Payment success rate.
+- Refunds and adjustments.
+- Router uptime.
+- Provisioning failures.
+- Customer counts.
+- Subscription trends.
+- Date filters.
+- Authorized CSV exports.
+
+Clearly distinguish BRISK revenue from payments collected for ISP tenants.
+
+Page 14: "/admin/support"
+
+Include:
+
+- Ticket list.
+- Priority.
+- Tenant.
+- Customer.
+- Assigned administrator.
+- Status.
+- Response history.
+- Attachments.
+- Internal notes.
+- Resolution details.
+
+Restrict internal notes to authorized support personnel.
+
+Page 15: "/admin/audit-logs"
+
+Record and search:
+
+- Actor.
+- Tenant.
+- Action.
+- Resource.
+- Timestamp.
+- Result.
+- Request or correlation ID.
+- Safe metadata.
+- Source IP where legally and operationally appropriate.
+
+Prevent ordinary application roles from editing or deleting audit records.
+
+Page 16: "/admin/settings"
+
+Include:
+
+- Platform branding.
+- SaaS plan defaults.
+- Registration policy.
+- Security settings.
+- Payment provider configuration.
+- Notification configuration.
+- Session policies.
+- Data retention settings.
+- Maintenance mode.
+- Feature flags.
+- Operational alerts.
+
+Sensitive credentials must be managed through secure server-side secret storage.
+
+---
+
+ROUTER OWNER PAGES
+
+Page 17: "/dashboard"
+
+Display:
+
+- Customer count.
+- Active internet subscriptions.
+- Connected clients.
+- Revenue collected.
+- Pending payments.
+- Recent successful payments.
+- Offline routers.
+- Active access points.
+- Package sales.
+- Expiring packages.
+- Voucher sales.
+- Failed provisioning jobs.
+- Recent support tickets.
+
+Include date filters and links to detailed reports.
+
+Do not show fake or hardcoded live network statistics.
+
+Page 18: "/network/sites"
+
+Allow owners to manage network locations.
+
+Include:
+
+- Site name.
+- Address or region.
+- Timezone.
+- Description.
+- Router assignments.
+- Access points.
+- Customer counts.
+- Status.
+- Site-specific reports.
+
+A tenant can only access its own sites.
+
+Page 19: "/network/connect"
+
+Create a guided router onboarding wizard.
+
+Steps:
+
+1. Select vendor.
+2. Select model or integration type.
+3. Select site.
+4. Select management method.
+5. Configure secure connection credentials.
+6. Test connectivity.
+7. Retrieve device identity.
+8. Inspect supported capabilities.
+9. Run a read-only diagnostic.
+10. Confirm and save the connection.
+
+Support credential rotation and disconnection.
+
+Never expose management ports publicly merely to simplify onboarding. Prefer VPN or an outbound network agent when required.
+
+Page 20: "/network/routers"
+
+Display:
+
+- Router name.
+- Vendor.
+- Model.
+- Site.
+- IP or management identifier where authorized.
+- Online/offline status.
+- Uptime.
+- Firmware.
+- Connected clients.
+- Last successful poll.
+- Integration health.
+- Capabilities.
+- Alerts.
+
+Allow safe diagnostics, reconnection, and authorized configuration actions.
+
+Page 21: "/network/access-points"
+
+Include:
+
+- AP name.
+- Parent controller or gateway.
+- Site.
+- Vendor and model.
+- Status.
+- Connected client count.
+- Traffic metrics.
+- Signal metrics where supported.
+- SSID information where authorized.
+- Client history.
+- Health alerts.
+
+Do not claim a device is online unless the integration has recent evidence.
+
+Page 22: "/network/topology"
+
+Create a visual network map.
+
+Display:
+
+- Main gateway.
+- Routers.
+- Switches where discoverable.
+- Controllers.
+- Access points.
+- Connected clients where permitted.
+- Link status.
+- Parent-child relationships.
+- Site grouping.
+- Last discovery time.
+
+Allow authorized users to associate access points with a network. Mark manually configured or unverified relationships clearly.
+
+Do not invent network links or latency measurements.
+
+Page 23: "/network/clients"
+
+Include:
+
+- Client identifier.
+- Customer association where known.
+- Router.
+- Access point.
+- IP and MAC address where available.
+- Login method.
+- Package.
+- Session start.
+- Traffic usage.
+- Session state.
+
+Support disconnect and reconnect only when the connected vendor adapter provides those capabilities.
+
+Require confirmation for bulk disconnect operations.
+
+Page 24: "/network/sessions"
+
+Include:
+
+- Session identifier.
+- Customer.
+- Device.
+- Router.
+- Login method.
+- Start and end time.
+- Download and upload usage.
+- Package.
+- Session status.
+- Disconnect reason where available.
+
+Support date filters, customer search, and export permissions.
+
+Page 25: "/network/alerts"
+
+Include:
+
+- Router offline.
+- AP offline.
+- Repeated authentication failure.
+- High utilization.
+- Provisioning failure.
+- Payment-to-activation delay.
+- Expiring credentials.
+- Integration API failure.
+
+Provide severity, timestamp, affected device, troubleshooting guidance, and acknowledgment status.
+
+---
+
+PACKAGES, CUSTOMERS, AND BILLING
+
+Page 26: "/packages"
+
+Show the global packages made available to the tenant.
+
+Include:
+
+- Package name.
+- Price.
+- Validity.
+- Speed.
+- Data quota.
+- Device limit.
+- Supported access type.
+- Tenant eligibility.
+- Availability status.
+
+Router owners may enable or disable eligible packages according to platform policy. They must not alter global prices, validity, or speed definitions.
+
+Page 27: "/customers"
+
+Include:
+
+- Customer name.
+- Phone number.
+- Email where available.
+- Registration date.
+- Active package.
+- Expiry date.
+- Payment history.
+- Voucher history.
+- Connected sessions.
+- Customer status.
+- Support tickets.
+
+Support search, filters, pagination, customer details, account suspension, and authorized reconnection.
+
+Page 28: "/customers/:id"
+
+Show a complete customer profile:
+
+- Contact details.
+- Verification status.
+- Active entitlements.
+- Order history.
+- Payment receipts.
+- Voucher redemption.
+- Devices and sessions.
+- Traffic usage.
+- Support tickets.
+- Audit events visible to authorized staff.
+
+Protect personal information through tenant-scoped permissions.
+
+Page 29: "/orders"
+
+Include:
+
+- Order number.
+- Customer.
+- Package version.
+- Amount.
+- Currency.
+- Payment method.
+- Order status.
+- Created time.
+- Payment deadline.
+- Entitlement status.
+
+Support search and filters. Do not treat an order as paid until the payment workflow verifies it.
+
+Page 30: "/payments"
+
+Show tenant-scoped payments.
+
+Include:
+
+- Transaction reference.
+- Order.
+- Customer.
+- Amount.
+- Currency.
+- Provider.
+- Status.
+- Payment timestamp.
+- Callback status.
+- Reconciliation status.
+- Receipt.
+
+Allow permitted exports and reconciliation review.
+
+Page 31: "/vouchers"
+
+Include:
+
+- Generate voucher batches.
+- Choose an approved package.
+- Choose quantity.
+- Configure expiry.
+- Configure redemption limits.
+- Bind to a device or customer where supported.
+- Preview printable vouchers.
+- Print or export authorized voucher batches.
+- Search and filter codes.
+- Revoke unused vouchers.
+- View redemption history.
+
+Generate codes using cryptographically secure randomness. Store a secure hash of each code where practical. Do not expose existing plaintext voucher codes unnecessarily.
+
+Voucher redemption must be atomic and idempotent.
+
+Page 32: "/vouchers/:batchId"
+
+Show:
+
+- Batch identifier.
+- Package.
+- Creation date.
+- Expiry policy.
+- Number generated.
+- Number redeemed.
+- Number remaining.
+- Revoked count.
+- Authorized printing action.
+- Redemption history.
+
+Do not allow unlimited reprinting of revealed voucher secrets without appropriate permission.
+
+Page 33: "/entitlements"
+
+Display customer internet entitlements.
+
+Include:
+
+- Customer.
+- Package version.
+- Start time.
+- Expiry time.
+- Quota.
+- Remaining quota if measurable.
+- Device limit.
+- Access status.
+- Provisioning status.
+- Renewal history.
+
+Access must be provisioned only after a verified successful payment or valid voucher redemption.
+
+Page 34: "/transactions"
+
+Display a financial transaction ledger.
+
+Include:
+
+- Reference.
+- Transaction type.
+- Amount.
+- Currency.
+- Debit or credit.
+- Related order or payment.
+- Timestamp.
+- Status.
+- Reconciliation details.
+
+Use append-only accounting records and compensating entries for corrections. Never silently rewrite completed financial history.
+
+Page 35: "/refunds"
+
+Include:
+
+- Original payment.
+- Requested amount.
+- Refund reason.
+- Requesting user.
+- Approver.
+- Provider status.
+- Refund reference.
+- Timestamps.
+- Failure reason.
+
+Only permit refunds supported by the payment provider and authorized business model. Keep the original payment record intact.
+
+---
+
+CUSTOMER PORTAL PAGES
+
+Page 36: "/portal/:siteSlug"
+
+Create a mobile-first captive portal.
+
+Include:
+
+- Tenant branding.
+- Network or site identity.
+- Login.
+- Registration.
+- Available packages.
+- M-Pesa payment.
+- Voucher redemption.
+- Terms of service.
+- Privacy notice.
+- Support contact.
+
+Resolve tenant and site using trusted server-side records. Never trust a tenant identifier solely because it appears in a query string.
+
+The portal must remain lightweight and must not depend on installing a mobile application.
+
+Page 37: "/portal/login"
+
+Allow customers to authenticate using the configured login method.
+
+Support session recovery, clear errors, rate limiting, and secure redirects.
+
+If the router supports captive-portal authentication, exchange the necessary short-lived authorization data through a trusted backend workflow.
+
+Never expose router administration credentials to the browser.
+
+Page 38: "/portal/packages"
+
+Display only eligible packages.
+
+For each package show:
+
+- Price.
+- Currency.
+- Duration.
+- Speed profile.
+- Quota.
+- Device limit.
+- Access method.
+- Terms.
+
+The checkout amount and package version must be determined by the server.
+
+Page 39: "/portal/checkout"
+
+Include:
+
+- Selected package.
+- Final amount.
+- Currency.
+- Phone number.
+- M-Pesa payment action.
+- Voucher alternative where appropriate.
+- Payment progress.
+- Cancellation and timeout handling.
+
+Do not request or store the customer's M-Pesa PIN.
+
+Page 40: "/portal/payment-status"
+
+Display:
+
+- Pending.
+- Successful.
+- Failed.
+- Cancelled.
+- Expired.
+- Reconciliation pending.
+- Provisioning pending.
+- Access active.
+
+Poll an authorized payment-status endpoint or use a secure realtime mechanism.
+
+Do not rely on the browser redirect as proof of payment.
+
+Page 41: "/portal/voucher"
+
+Allow customers to enter a voucher code.
+
+Validate the code on the server, verify tenant and package eligibility, prevent duplicate redemption, create the entitlement, and enqueue provisioning.
+
+Show the result clearly, including an activation-pending state when the router is unavailable.
+
+Page 42: "/portal/success"
+
+Show:
+
+- Package purchased.
+- Payment reference.
+- Activation status.
+- Expiry time.
+- Connection instructions.
+- Receipt link.
+- Support link.
+
+Only show active status after network provisioning is confirmed.
+
+Page 43: "/customer/dashboard"
+
+Display:
+
+- Active package.
+- Expiry countdown.
+- Data usage where available.
+- Recent payments.
+- Receipts.
+- Connected devices.
+- Renewal action.
+- Notifications.
+- Support requests.
+
+Page 44: "/customer/profile"
+
+Allow the customer to update permitted profile fields, verify contact information, change their password, manage sessions, and review account security.
+
+Page 45: "/customer/transactions"
+
+Show only the signed-in customer's own transactions and receipts.
+
+Support date filters, transaction details, and secure receipt downloads.
+
+Page 46: "/customer/devices"
+
+Show registered devices and active sessions where available.
+
+Allow supported device removal and session disconnection, subject to business policy and vendor capabilities.
+
+Page 47: "/customer/notifications"
+
+Show payment outcomes, expiry reminders, security notifications, and support updates.
+
+Include read/unread state and delivery status where available.
+
+Page 48: "/customer/support"
+
+Allow customers to:
+
+- Create tickets.
+- Select a category.
+- Describe the issue.
+- Upload authorized attachments.
+- View responses.
+- Reply.
+- Close or reopen tickets according to policy.
+
+---
+
+SETTINGS AND SUPPORT PAGES
+
+Page 49: "/settings/business"
+
+Allow tenant owners to configure:
+
+- Business name.
+- Logo.
+- Contact information.
+- Timezone.
+- Currency.
+- Portal branding.
+- Sites.
+- Customer terms and privacy information.
+
+Page 50: "/settings/payments"
+
+Allow authorized owners to configure their own payment provider account where supported.
+
+Include:
+
+- Provider.
+- Environment.
+- Account or shortcode.
+- Credential status.
+- Callback configuration status.
+- Test connection.
+- Secret rotation.
+- Last successful payment.
+- Error diagnostics.
+
+Never return plaintext stored credentials after saving them. Use secure server-side secret storage.
+
+Page 51: "/settings/integrations"
+
+Manage:
+
+- Router vendor integrations.
+- Payment providers.
+- Email delivery.
+- SMS or WhatsApp providers if enabled.
+- RADIUS integration.
+- API health.
+- Connection tests.
+- Credential rotation.
+- Integration logs.
+
+Display which features are supported by each connected integration.
+
+Page 52: "/settings/staff"
+
+Include:
+
+- Staff invitations.
+- Role assignment.
+- Permission configuration.
+- Account status.
+- Invitation expiry.
+- Last activity where available.
+- Revoke access.
+- Audit history.
+
+Require verified owner permission for all staff changes.
+
+Page 53: "/settings/security"
+
+Include:
+
+- Password and MFA settings.
+- Session management.
+- Login notifications.
+- API credential rotation.
+- Router credential rotation.
+- Active sessions.
+- Security event history.
+- Account recovery.
+
+Page 54: "/support"
+
+Create a shared support centre for tenant owners and staff.
+
+Include:
+
+- Ticket categories.
+- Ticket submission.
+- Priority.
+- Status.
+- Replies.
+- Attachments.
+- Resolution.
+- Knowledge-base articles.
+
+Customers and tenant staff must only see tickets they are authorized to access.
+
+Page 55: "/referrals"
+
+Optional referral programme.
+
+Include:
+
+- Unique referral code.
+- Referred customers.
+- Eligible qualifying transactions.
+- Commission percentage.
+- Commission status.
+- Balance.
+- Payout history.
+
+If the configured policy is a 10% referral commission, calculate it on the server from explicitly defined eligible transactions. Prevent self-referrals and duplicate commission claims. Keep commissions pending until the qualifying transaction meets the policy requirements.
+
+Page 56: "/notifications"
+
+For staff and owners, show:
+
+- Router alerts.
+- Payment alerts.
+- Failed provisioning.
+- Expiring packages.
+- Subscription reminders.
+- Support ticket updates.
+- Security events.
+
+Include severity, filters, acknowledgment, and delivery history.
+
+Page 57: "/reports"
+
+Provide tenant-scoped reports:
+
+- Daily revenue.
+- Monthly revenue.
+- Package sales.
+- Payment success rates.
+- Refunds.
+- Voucher sales and redemption.
+- Active and expired customers.
+- Connected clients.
+- Router uptime.
+- Traffic usage.
+- Provisioning failures.
+- SaaS subscription status.
+
+Provide authorized CSV exports and use server-side aggregation.
+
+Page 58: "/audit-logs"
+
+Display authorized tenant audit events.
+
+Include actor, action, resource, timestamp, result, and safe metadata.
+
+Audit events must not contain passwords, PINs, raw credentials, or unnecessary personal data.
+
+Page 59: "/404"
+
+Show a branded not-found page with safe navigation back to the user's authorized dashboard.
+
+Page 60: "/unauthorized"
+
+Explain that the requested resource is not available to the signed-in user. Do not reveal private resource details.
+
+7. INTERNET PACKAGE RULES
+
+Create a global package catalogue managed by Super Admin.
+
+Support configurable packages with:
+
+- Price.
+- Currency.
+- Validity.
+- Speed profile.
+- Data quota.
+- Device limit.
+- Supported access method.
+- Eligibility.
+- Availability.
+- Package version.
+
+For a Kenya-first launch, support KES and configure the intended pricing range of KES 450–3,500 for 30-day packages where applicable. Other validity durations may be configured for separately approved plans.
+
+Do not assume all packages have the same price or validity.
+
+Free trial package
+
+Support an optional one-time three-day free package for eligible newly registered customers.
+
+Requirements:
+
+- Automatically assign it after the customer meets the configured eligibility conditions.
+- Record that the trial has been consumed.
+- Prevent repeated use by the same account.
+- Apply appropriate abuse prevention without relying on IP address alone.
+- Make it non-transferable.
+- Define whether the trial begins immediately or on first successful activation.
+- Apply the configured device and speed limits.
+- Record activation and expiry.
+- Do not allow it to be repeatedly renewed through account recreation.
+
+Make trial availability configurable by Super Admin.
+
+8. DATABASE SCHEMA
+
+Create Supabase migrations for the following tables.
+
+Identity and tenants
+
+- "profiles"
+- "tenants"
+- "tenant_memberships"
+- "staff_invitations"
+- "platform_plans"
+- "tenant_subscriptions"
+- "invoices"
+
+Network
+
+- "sites"
+- "network_devices"
+- "access_points"
+- "device_capabilities"
+- "network_credentials"
+- "network_sessions"
+- "customer_devices"
+- "network_alerts"
+
+Packages and customers
+
+- "service_packages"
+- "service_package_versions"
+- "tenant_package_availability"
+- "customers"
+- "customer_trials"
+- "orders"
+- "access_entitlements"
+
+Payments and accounting
+
+- "payments"
+- "payment_events"
+- "voucher_batches"
+- "vouchers"
+- "voucher_redemptions"
+- "ledger_entries"
+- "refunds"
+- "reconciliation_runs"
+- "idempotency_keys"
+
+Operations and communication
+
+- "provisioning_jobs"
+- "webhook_deliveries"
+- "support_tickets"
+- "support_messages"
+- "notifications"
+- "notification_deliveries"
+- "referrals"
+- "referral_commissions"
+- "audit_logs"
+- "integration_configs"
+
+Use UUID primary keys, foreign keys, unique constraints, indexes, and UTC timestamps.
+
+Store monetary values as integer minor units or exact numeric values.
+
+Add tenant ownership to all tenant-owned records. Enable RLS on all exposed tenant-owned tables.
+
+Do not permit ordinary application roles to rewrite completed ledger entries or payment history.
+
+Use immutable package versions for existing orders.
+
+Create development seed data only in non-production environments.
+
+9. M-PESA INTEGRATION
+
+Integrate Safaricom Daraja through the official API.
+
+Create:
+
+- Payment initiation endpoint.
+- STK Push request handling.
+- Secure callback endpoint.
+- Payment-status endpoint.
+- Reconciliation process.
+- Authorized refund workflow where supported.
+
+Payment workflow
+
+1. Customer selects a package.
+2. Server validates the package and creates an order.
+3. Server calculates the amount.
+4. Server creates a payment record with pending status.
+5. Backend requests STK Push.
+6. Customer completes or cancels the provider prompt.
+7. Backend processes the callback.
+8. Backend validates the callback against the pending payment and provider references.
+9. Backend deduplicates the event.
+10. Backend commits the successful payment and ledger records transactionally.
+11. Backend enqueues the entitlement provisioning job.
+12. Worker provisions access through the relevant adapter.
+13. Backend confirms the result and sends a receipt.
+
+A callback must not be trusted solely because it contains a success result. Validate the identifiers, expected amount, order, provider transaction reference, and applicable reconciliation requirements.
+
+Never expose Daraja consumer secrets or passkeys in frontend code.
+
+Never accept frontend input as proof of payment.
+
+10. VOUCHER SYSTEM
+
+Create secure voucher generation and redemption.
+
+Each voucher must be associated with:
+
+- Tenant.
+- Approved package version.
+- Voucher batch.
+- Expiry.
+- Redemption policy.
+- Status.
+- Secure code hash.
+- Redemption history.
+
+Voucher workflow:
+
+1. Authorized staff selects a package.
+2. Backend generates secure random codes.
+3. Backend stores voucher hashes and batch metadata.
+4. Authorized staff prints the voucher batch.
+5. Customer enters a code.
+6. Backend validates the hash and voucher status.
+7. Backend atomically marks the voucher redeemed.
+8. Backend creates the entitlement and provisioning job.
+9. Network worker activates access.
+10. Customer receives confirmation.
+
+Prevent concurrent redemption, brute-force attempts, cross-tenant redemption, duplicate entitlements, and reuse after revocation.
+
+11. MULTI-VENDOR ROUTER INTEGRATION
+
+Create a common application interface:
+
+- "testConnection"
+- "getDeviceStatus"
+- "getConnectedClients"
+- "getCapabilities"
+- "authorizeClient"
+- "disconnectClient"
+- "getUsage"
+
+Implement independent adapters for:
+
+MikroTik
+
+Use supported RouterOS API or secured REST API operations.
+
+Support applicable hotspot, PPPoE, session, and bandwidth controls.
+
+UniFi
+
+Use supported official controller APIs for devices, sites, clients, and available network actions.
+
+TP-Link Omada
+
+Use supported controller APIs for devices, clients, sites, and network management.
+
+OpenWrt
+
+Use a secure management agent or controlled management interface on authorized devices.
+
+FreeRADIUS
+
+Where applicable, use RADIUS for authentication, authorization, accounting, and supported disconnect operations.
+
+Never assume that all vendors implement identical capabilities.
+
+Return explicit unsupported or permission-denied results when an operation is unavailable.
+
+Use encrypted credentials, TLS, network restrictions, secure tunnels or outbound agents where needed, and least-privilege router accounts.
+
+Do not expose router management ports publicly for convenience.
+
+12. AUTOMATIC PROVISIONING
+
+Use a durable job queue.
+
+Each provisioning job must include:
+
+- Tenant.
+- Entitlement.
+- Router or controller.
+- Operation.
+- Idempotency key.
+- Retry count.
+- Current status.
+- Last error.
+- Created and updated timestamps.
+
+Supported statuses:
+
+- Queued.
+- Running.
+- Succeeded.
+- Retry scheduled.
+- Failed.
+- Manual review.
+
+Retry temporary failures with exponential backoff and a maximum retry count.
+
+Do not lose successful payment records if the router is offline.
+
+Do not create a second entitlement when a job is retried.
+
+Do not tell a customer that access is active until provisioning is confirmed.
+
+13. SUBSCRIPTIONS AND EXPIRY
+
+Create a scheduled worker to check expiring entitlements.
+
+It must:
+
+- Identify expired subscriptions.
+- Apply the configured grace-period policy.
+- Suspend access through supported network operations.
+- Record the result.
+- Retry failures.
+- Notify the customer and owner where appropriate.
+- Avoid disconnecting unrelated customers or sessions.
+- Handle router outages without losing the expiry event.
+
+Define exact package timing semantics, including first-use activation, fixed expiry, quota exhaustion, and renewal behavior.
+
+14. NOTIFICATIONS
+
+Create an internal notification system.
+
+Support:
+
+- Payment success.
+- Payment failure.
+- Provisioning delay.
+- Package expiry.
+- Voucher redemption.
+- Router offline.
+- Subscription renewal.
+- Support ticket updates.
+- Security alerts.
+
+Add optional email, SMS, or WhatsApp provider adapters.
+
+Use delivery queues, retry policies, rate limits, templates, and delivery logs.
+
+Never claim that a notification was delivered unless the delivery provider confirms the result.
+
+15. REPORTING AND FINANCE
+
+Implement server-side financial aggregation.
+
+Reports must distinguish:
+
+- BRISK SaaS subscription revenue.
+- ISP customer payment volume.
+- Refunds.
+- Accounting adjustments.
+- Referral commissions.
+- Outstanding invoices.
+- Payment reconciliation differences.
+
+Use an append-only ledger with compensating entries.
+
+Do not treat payment initiation as revenue collection.
+
+Provide authorized CSV exports with tenant-scoped filtering.
+
+16. API ENDPOINTS
+
+Implement secure API routes for:
+
+- Authentication and profile.
+- Tenant and membership management.
+- Staff invitations.
+- SaaS subscriptions.
+- Global packages.
+- Tenant package availability.
+- Sites and network devices.
+- Router onboarding.
+- Device capabilities.
+- Connected clients.
+- Network sessions.
+- Customers.
+- Orders.
+- Payments.
+- Daraja callbacks.
+- Payment reconciliation.
+- Vouchers and batches.
+- Entitlements.
+- Provisioning jobs.
+- Reports.
+- Notifications.
+- Support tickets.
+- Referrals.
+- Audit logs.
+- Super Admin operations.
+
+Validate all input using schemas.
+
+Derive user identity from the authenticated session.
+
+Resolve tenant permissions server-side.
+
+Use rate limiting, pagination, and safe error responses.
+
+Never accept arbitrary SQL or unrestricted router commands.
+
+17. SECURITY
+
+Implement:
+
+- Row Level Security.
+- Server-side authorization.
+- Tenant isolation.
+- MFA for privileged users where enabled.
+- Secure password recovery.
+- Secret manager or KMS-backed credential encryption.
+- HTTPS and secure cookies where applicable.
+- CSRF protection where applicable.
+- Rate limiting.
+- Input validation.
+- Webhook deduplication.
+- Payment idempotency.
+- Audit logging.
+- Secure router connectivity.
+- Dependency updates.
+- Backup and recovery procedures.
+- Session revocation.
+- Monitoring and alerting.
+
+Do not expose database service-role keys, payment credentials, router passwords, or secret tokens to the browser.
+
+Do not store M-Pesa PINs.
+
+Do not place secrets or sensitive personal data in URLs or application logs.
+
+18. PROJECT STRUCTURE
+
+Create a maintainable repository with:
+
+- "apps/web"
+- "apps/api"
+- "apps/worker"
+- "packages/ui"
+- "packages/schemas"
+- "packages/billing"
+- "packages/payments"
+- "packages/network/core"
+- "packages/network/mikrotik"
+- "packages/network/unifi"
+- "packages/network/omada"
+- "packages/network/openwrt"
+- "packages/network/radius"
+- "supabase/migrations"
+- "supabase/tests"
+- "tests/unit"
+- "tests/integration"
+- "tests/e2e"
+- "tests/security"
+- "docs/architecture.md"
+- "docs/deployment.md"
+- "docs/router-setup.md"
+- "docs/incident-response.md"
+- ".env.example"
+- "README.md"
+
+Keep frontend, backend, worker, database, and adapter responsibilities separate.
+
+19. TESTING
+
+Create automated tests for:
+
+- Registration and authentication.
+- Role permissions.
+- Tenant isolation.
+- RLS policies.
+- Package eligibility.
+- Order creation.
+- M-Pesa callback processing.
+- Duplicate callbacks.
+- Cancelled and failed payments.
+- Delayed successful callbacks.
+- Voucher expiration.
+- Concurrent voucher redemption.
+- Duplicate provisioning jobs.
+- Router offline recovery.
+- Entitlement expiry.
+- Refund handling.
+- Ledger integrity.
+- Unauthorized network commands.
+- API rate limiting.
+- Large table pagination.
+- Backup restoration.
+- Mobile portal behavior.
+
+Use Daraja sandbox and lab equipment for integration tests.
+
+Never use fake payment success or mock router activation as production behavior.
+
+20. DEPLOYMENT
+
+Provide exact setup and deployment instructions.
+
+Required steps:
+
+1. Create the repository.
+2. Install dependencies.
+3. Configure Supabase.
+4. Apply migrations.
+5. Configure authentication and RLS.
+6. Configure the backend.
+7. Configure the worker and queue.
+8. Configure Daraja sandbox credentials.
+9. Configure secure secret storage.
+10. Deploy frontend, API, and worker separately.
+11. Test router adapters with lab equipment.
+12. Run automated tests.
+13. Verify monitoring and backup restoration.
+14. Complete security review.
+15. Configure production credentials.
+16. Perform controlled production launch.
+
+Use separate credentials for development, staging, and production.
+
+Create ".env.example" with variable names and empty values only.
+
+Never put real credentials into source code or generated prompts.
+
+21. IMPLEMENTATION INSTRUCTIONS
+
+Build the application in phases.
+
+Phase 1: Repository, UI system, routing, and authentication.
+
+Phase 2: Tenant management, roles, database migrations, and RLS.
+
+Phase 3: Super Admin and ISP owner dashboards.
+
+Phase 4: Global packages, SaaS subscriptions, and invoices.
+
+Phase 5: Customers, orders, payments, and Daraja sandbox.
+
+Phase 6: Voucher generation, redemption, and entitlements.
+
+Phase 7: MikroTik integration and real provisioning.
+
+Phase 8: UniFi, Omada, OpenWrt, and RADIUS adapters.
+
+Phase 9: Notifications, reports, audit logs, and support.
+
+Phase 10: Automated tests, security review, staging, and production deployment.
+
+For every phase:
+
+1. List every file to create or modify.
+2. Explain the responsibility of every file.
+3. Generate complete working code.
+4. Include migrations and security policies.
+5. Include validation and error handling.
+6. Include tests.
+7. Include setup instructions.
+8. Explain how to verify the functionality.
+9. Identify any external credentials or hardware needed.
+10. Preserve compatibility with previously implemented modules.
+
+Do not replace working functionality with placeholder implementations.
+
+Do not claim an external integration is complete until it has been tested against the real service or supported hardware.
+
+Begin with Phase 1. First present the architecture and file tree, then implement the first phase completely. Continue in subsequent phases without changing established contracts unnecessarily.
+
+The final system must be secure, multi-tenant, responsive, maintainable, and capable of processing real payments and provisioning real internet access through verified network integrations.

@@ -1,22 +1,5 @@
-import { createClient } from '@supabase/supabase-js';
-import type { User, CustomerProfile, RouterOwnerProfile, Transaction, Voucher } from '../types/index.ts';
-
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
-
-export const isSupabaseConfigured = Boolean(
-  supabaseUrl && supabaseAnonKey && !supabaseUrl.includes('your-project')
-);
-
-export const supabase = isSupabaseConfigured
-  ? createClient(supabaseUrl, supabaseAnonKey, {
-      auth: {
-        persistSession: true,
-        autoRefreshToken: true,
-        detectSessionInUrl: true,
-      },
-    })
-  : null;
+import { supabase, isSupabaseConfigured, SUPABASE_URL, SUPABASE_ANON_KEY, supabaseDb } from '../lib/supabase.ts';
+export * from '../lib/supabase.ts';
 
 export const supabaseAuth = {
   isConfigured: isSupabaseConfigured,
