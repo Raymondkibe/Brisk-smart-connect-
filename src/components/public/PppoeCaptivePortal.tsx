@@ -102,6 +102,7 @@ export const PppoeCaptivePortal: React.FC<PppoeCaptivePortalProps> = ({
           routerName: 'Main MikroTik CCR Cloud Core',
           speed: '15 Mbps',
           connectedDuration: '14 days',
+          expiresAt: new Date(Date.now() + 30 * 86400000).toISOString(),
         });
       }
     } catch (err: any) {

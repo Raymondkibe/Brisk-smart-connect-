@@ -235,6 +235,7 @@ export interface PppoeUser {
   allocatedSpeed?: string;
   uptime?: string;
   macAddress?: string;
+  routerId?: string;
 }
 
 export interface Voucher {
@@ -293,7 +294,7 @@ export interface WithdrawalRequest {
   userName: string;
   userRole: UserRole;
   amountKes: number;
-  amount: number;
+  amount?: number;
   feeKes?: number;
   netAmountKes?: number;
   feePercent?: number;

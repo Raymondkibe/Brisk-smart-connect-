@@ -865,6 +865,9 @@ export const api = {
   },
 
   async addCustomPackage(packageData: any) {
+    if (isSupabaseConfigured && packageData) {
+      supabaseDb.saveWifiPackage(packageData).catch((e) => console.warn('[Supabase] addCustomPackage sync:', e));
+    }
     const res = await fetch('/api/owner/packages', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -874,10 +877,17 @@ export const api = {
       const err = await res.json().catch(() => ({}));
       throw new Error(err.error || 'Failed to add custom package');
     }
-    return res.json();
+    const result = await res.json();
+    if (isSupabaseConfigured && result.package) {
+      supabaseDb.saveWifiPackage(result.package).catch((e) => console.warn('[Supabase] addCustomPackage sync:', e));
+    }
+    return result;
   },
 
   async deleteCustomPackage(packageId: string) {
+    if (isSupabaseConfigured) {
+      supabaseDb.deleteWifiPackage(packageId).catch((e) => console.warn('[Supabase] deleteWifiPackage sync:', e));
+    }
     const res = await fetch(`/api/owner/packages/${encodeURIComponent(packageId)}`, {
       method: 'DELETE',
     });
@@ -1473,6 +1483,9 @@ export const api = {
   },
 
   async updateCustomPackage(id: string, packageData: Partial<WifiPackage>): Promise<{ success: boolean; package: WifiPackage }> {
+    if (isSupabaseConfigured && packageData) {
+      supabaseDb.saveWifiPackage({ id, ...packageData } as WifiPackage).catch((e) => console.warn('[Supabase] updateCustomPackage sync:', e));
+    }
     const res = await fetch(`/api/owner/packages/${encodeURIComponent(id)}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
@@ -1482,7 +1495,11 @@ export const api = {
       const err = await res.json().catch(() => ({}));
       throw new Error(err.error || 'Failed to update WiFi package');
     }
-    return res.json();
+    const result = await res.json();
+    if (isSupabaseConfigured && result.package) {
+      supabaseDb.saveWifiPackage(result.package).catch((e) => console.warn('[Supabase] updateCustomPackage sync:', e));
+    }
+    return result;
   },
 
   async requestOwnerWithdrawal(data: {
@@ -1499,7 +1516,11 @@ export const api = {
       const err = await res.json().catch(() => ({}));
       throw new Error(err.error || 'Failed to submit owner withdrawal request');
     }
-    return res.json();
+    const result = await res.json();
+    if (isSupabaseConfigured && result.withdrawal) {
+      supabaseDb.recordWithdrawal(result.withdrawal).catch((e) => console.warn('[Supabase] withdrawal sync:', e));
+    }
+    return result;
   },
 };
 

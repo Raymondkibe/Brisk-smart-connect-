@@ -44,6 +44,7 @@ import type {
 } from '../../types/index.ts';
 import { api } from '../../services/api.ts';
 import { AddCustomPackageModal } from './AddCustomPackageModal.tsx';
+import { CaptivePortalPreviewModal } from './CaptivePortalPreviewModal.tsx';
 
 interface CaptivePortalBuilderProps {
   ownerId: string;
@@ -72,6 +73,7 @@ export const CaptivePortalBuilder: React.FC<CaptivePortalBuilderProps> = ({
   const [saveError, setSaveError] = useState('');
   const [publishModalOpen, setPublishModalOpen] = useState(false);
   const [publishSummary, setPublishSummary] = useState('');
+  const [previewModalOpen, setPreviewModalOpen] = useState(false);
 
   // Portal Configuration State
   const [config, setConfig] = useState<PortalConfig>({
@@ -424,6 +426,16 @@ export const CaptivePortalBuilder: React.FC<CaptivePortalBuilderProps> = ({
 
         {/* Global Save & Publish Actions */}
         <div className="flex flex-wrap items-center gap-2.5 shrink-0">
+          <button
+            type="button"
+            onClick={() => setPreviewModalOpen(true)}
+            className="px-4 py-2.5 bg-sky-500/10 hover:bg-sky-500/20 text-sky-400 font-bold rounded-xl text-xs transition-colors border border-sky-500/30 flex items-center gap-1.5 shadow-sm"
+            title="Preview custom branded captive portal in interactive multi-device modal"
+          >
+            <Eye className="w-3.5 h-3.5 text-sky-400" />
+            <span>Preview Portal</span>
+          </button>
+
           <button
             type="button"
             disabled={loading}
@@ -1556,6 +1568,15 @@ export const CaptivePortalBuilder: React.FC<CaptivePortalBuilderProps> = ({
         onClose={() => setShowAddPackageModal(false)}
         ownerId={ownerId}
         onPackageCreated={handlePackageCreatedFromModal}
+      />
+
+      {/* INTERACTIVE CAPTIVE PORTAL PREVIEW MODAL */}
+      <CaptivePortalPreviewModal
+        isOpen={previewModalOpen}
+        onClose={() => setPreviewModalOpen(false)}
+        config={config}
+        packages={ownerPackagesList.length > 0 ? ownerPackagesList : packages}
+        profile={profile}
       />
     </div>
   );

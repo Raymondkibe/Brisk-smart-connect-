@@ -23,6 +23,7 @@ interface CaptivePortalPreviewModalProps {
   onClose: () => void;
   config: Partial<PortalConfig>;
   packages: WifiPackage[];
+  profile?: any;
   onSaveAndPublish?: () => void;
 }
 

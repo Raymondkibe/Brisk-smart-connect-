@@ -2635,12 +2635,13 @@ export const OwnerDashboard: React.FC<OwnerDashboardProps> = ({
                         <tbody className="divide-y divide-slate-800">
                           {withdrawals && withdrawals.length > 0 ? (
                             withdrawals.map((w) => {
-                              const fee = w.feeKes ?? Math.round(w.amount * 0.05);
-                              const net = w.netAmountKes ?? w.amount - fee;
+                              const rawAmount = w.amountKes || w.amount || 0;
+                              const fee = w.feeKes ?? Math.round(rawAmount * 0.05);
+                              const net = w.netAmountKes ?? (rawAmount - fee);
                               return (
                                 <tr key={w.id} className="hover:bg-slate-800/40">
                                   <td className="p-3 font-mono font-bold text-white">{w.id}</td>
-                                  <td className="p-3 font-mono text-slate-200">KES {w.amount.toLocaleString()}</td>
+                                  <td className="p-3 font-mono text-slate-200">KES {rawAmount.toLocaleString()}</td>
                                   <td className="p-3 font-mono text-amber-400">- KES {fee.toLocaleString()}</td>
                                   <td className="p-3 font-mono font-bold text-emerald-400">KES {net.toLocaleString()}</td>
                                   <td className="p-3 font-mono text-slate-400">{w.phone || '0712345678'}</td>

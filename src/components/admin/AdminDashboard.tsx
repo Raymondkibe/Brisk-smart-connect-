@@ -395,154 +395,168 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
             {/* ======================================================== */}
             {/* OVERVIEW TAB MATCHING IMAGE 2 SECTION 5 */}
             {/* ======================================================== */}
-            {activeTab === 'OVERVIEW' && (
-              <div className="space-y-6">
-                {/* 4 PLATFORM STAT CARDS MATCHING SCREENSHOT */}
-                <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                  {/* Card 1: Total Owners */}
-                  <div className="p-5 bg-[#0b132b] border border-slate-800/80 rounded-2xl flex flex-col justify-between space-y-2 shadow-sm">
-                    <div className="flex items-center justify-between text-slate-400 text-xs">
-                      <span className="font-semibold">Total Owners</span>
-                      <UserCheck className="w-4 h-4 text-sky-400" />
-                    </div>
-                    <div className="text-3xl font-black text-white font-mono">24</div>
-                  </div>
+            {activeTab === 'OVERVIEW' && (() => {
+              const totalOwners = users.filter((u) => u.role === 'ROUTER_OWNER').length;
+              const totalCustomers = users.filter((u) => u.role === 'CUSTOMER').length;
+              const totalRevenue = transactions
+                .filter((t) => t.status === 'SUCCESS')
+                .reduce((acc, t) => acc + t.amountKes, 0);
+              const activeRouters = routers.filter((r) => r.status === 'ONLINE').length;
 
-                  {/* Card 2: Total Customers */}
-                  <div className="p-5 bg-[#0b132b] border border-slate-800/80 rounded-2xl flex flex-col justify-between space-y-2 shadow-sm">
-                    <div className="flex items-center justify-between text-slate-400 text-xs">
-                      <span className="font-semibold">Total Customers</span>
-                      <Users className="w-4 h-4 text-emerald-400" />
-                    </div>
-                    <div className="text-3xl font-black text-white font-mono">8,942</div>
-                  </div>
+              const recentActivities = [
+                ...transactions.map((tx) => ({
+                  id: tx.id,
+                  title: `Payment received (${tx.packageName || 'Package'}: KES ${tx.amountKes.toLocaleString()})`,
+                  time: tx.createdAt
+                    ? new Date(tx.createdAt).toLocaleDateString('en-KE', {
+                        day: 'numeric',
+                        month: 'short',
+                        hour: '2-digit',
+                        minute: '2-digit',
+                      })
+                    : 'Recently',
+                  icon: <DollarSign className="w-4 h-4 text-emerald-400" />,
+                  color: 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400',
+                })),
+                ...auditLogs.map((log) => ({
+                  id: log.id,
+                  title: log.details || `${log.action} - ${log.resource}`,
+                  time: log.timestamp
+                    ? new Date(log.timestamp).toLocaleDateString('en-KE', {
+                        day: 'numeric',
+                        month: 'short',
+                        hour: '2-digit',
+                        minute: '2-digit',
+                      })
+                    : 'Recently',
+                  icon: <UserCheck className="w-4 h-4 text-sky-400" />,
+                  color: 'bg-sky-500/10 border-sky-500/30 text-sky-400',
+                })),
+              ].slice(0, 5);
 
-                  {/* Card 3: Total Revenue */}
-                  <div className="p-5 bg-[#0b132b] border border-slate-800/80 rounded-2xl flex flex-col justify-between space-y-2 shadow-sm">
-                    <div className="flex items-center justify-between text-slate-400 text-xs">
-                      <span className="font-semibold">Total Revenue</span>
-                      <DollarSign className="w-4 h-4 text-amber-400" />
-                    </div>
-                    <div className="text-2xl font-black text-amber-400 font-mono">KES 1,250,430</div>
-                  </div>
-
-                  {/* Card 4: Active Routers */}
-                  <div className="p-5 bg-[#0b132b] border border-slate-800/80 rounded-2xl flex flex-col justify-between space-y-2 shadow-sm">
-                    <div className="flex items-center justify-between text-slate-400 text-xs">
-                      <span className="font-semibold">Active Routers</span>
-                      <Radio className="w-4 h-4 text-emerald-400" />
-                    </div>
-                    <div className="text-3xl font-black text-emerald-400 font-mono">86</div>
-                  </div>
-                </div>
-
-                {/* MIDDLE SPLIT: REVENUE OVERVIEW CHART + RECENT ACTIVITY */}
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-                  {/* LEFT: REVENUE OVERVIEW (2/3 width) */}
-                  <div className="lg:col-span-8 p-6 bg-[#0b132b] border border-slate-800/80 rounded-2xl space-y-5">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <h3 className="text-sm font-bold text-white">Revenue Overview</h3>
-                        <p className="text-xs text-slate-400">Platform-wide SaaS licensing & M-Pesa transaction collections</p>
+              return (
+                <div className="space-y-6">
+                  {/* 4 PLATFORM STAT CARDS MATCHING SCREENSHOT */}
+                  <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                    {/* Card 1: Total Owners */}
+                    <div className="p-5 bg-[#0b132b] border border-slate-800/80 rounded-2xl flex flex-col justify-between space-y-2 shadow-sm">
+                      <div className="flex items-center justify-between text-slate-400 text-xs">
+                        <span className="font-semibold">Total Owners</span>
+                        <UserCheck className="w-4 h-4 text-sky-400" />
                       </div>
-                      <span className="text-xs text-amber-400 font-semibold font-mono">Last 30 Days</span>
+                      <div className="text-3xl font-black text-white font-mono">{totalOwners}</div>
                     </div>
 
-                    {/* GOLDEN SMOOTH SVG AREA CHART MATCHING IMAGE 2 SECTION 5 */}
-                    <div className="h-56 relative w-full pt-4">
-                      <svg className="w-full h-full overflow-visible" viewBox="0 0 600 180" preserveAspectRatio="none">
-                        <defs>
-                          <linearGradient id="adminGoldGrad" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="0%" stopColor="#f59e0b" stopOpacity="0.35" />
-                            <stop offset="100%" stopColor="#f59e0b" stopOpacity="0.0" />
-                          </linearGradient>
-                        </defs>
-                        {/* Area fill */}
-                        <path
-                          d="M 0 140 Q 60 110, 120 125 T 240 90 T 360 110 T 480 60 T 600 30 L 600 180 L 0 180 Z"
-                          fill="url(#adminGoldGrad)"
-                        />
-                        {/* Golden trend line */}
-                        <path
-                          d="M 0 140 Q 60 110, 120 125 T 240 90 T 360 110 T 480 60 T 600 30"
-                          fill="none"
-                          stroke="#f59e0b"
-                          strokeWidth="3.5"
-                          strokeLinecap="round"
-                        />
-                        {/* Data points */}
-                        <circle cx="120" cy="125" r="4" fill="#0b132b" stroke="#f59e0b" strokeWidth="2.5" />
-                        <circle cx="240" cy="90" r="4" fill="#0b132b" stroke="#f59e0b" strokeWidth="2.5" />
-                        <circle cx="360" cy="110" r="4" fill="#0b132b" stroke="#f59e0b" strokeWidth="2.5" />
-                        <circle cx="480" cy="60" r="4" fill="#0b132b" stroke="#f59e0b" strokeWidth="2.5" />
-                        <circle cx="600" cy="30" r="5" fill="#f59e0b" stroke="#ffffff" strokeWidth="2" />
-                      </svg>
-                      <div className="flex justify-between text-[11px] text-slate-500 font-mono pt-2 border-t border-slate-800">
-                        <span>Day 1</span>
-                        <span>Day 8</span>
-                        <span>Day 15</span>
-                        <span>Day 22</span>
-                        <span>Day 30</span>
+                    {/* Card 2: Total Customers */}
+                    <div className="p-5 bg-[#0b132b] border border-slate-800/80 rounded-2xl flex flex-col justify-between space-y-2 shadow-sm">
+                      <div className="flex items-center justify-between text-slate-400 text-xs">
+                        <span className="font-semibold">Total Customers</span>
+                        <Users className="w-4 h-4 text-emerald-400" />
                       </div>
+                      <div className="text-3xl font-black text-white font-mono">{totalCustomers}</div>
+                    </div>
+
+                    {/* Card 3: Total Revenue */}
+                    <div className="p-5 bg-[#0b132b] border border-slate-800/80 rounded-2xl flex flex-col justify-between space-y-2 shadow-sm">
+                      <div className="flex items-center justify-between text-slate-400 text-xs">
+                        <span className="font-semibold">Total Revenue</span>
+                        <DollarSign className="w-4 h-4 text-amber-400" />
+                      </div>
+                      <div className="text-2xl font-black text-amber-400 font-mono">
+                        KES {totalRevenue.toLocaleString()}
+                      </div>
+                    </div>
+
+                    {/* Card 4: Active Routers */}
+                    <div className="p-5 bg-[#0b132b] border border-slate-800/80 rounded-2xl flex flex-col justify-between space-y-2 shadow-sm">
+                      <div className="flex items-center justify-between text-slate-400 text-xs">
+                        <span className="font-semibold">Active Routers</span>
+                        <Radio className="w-4 h-4 text-emerald-400" />
+                      </div>
+                      <div className="text-3xl font-black text-emerald-400 font-mono">{activeRouters}</div>
                     </div>
                   </div>
 
-                  {/* RIGHT: RECENT ACTIVITY MATCHING IMAGE 2 SECTION 5 */}
-                  <div className="lg:col-span-4 p-6 bg-[#0b132b] border border-slate-800/80 rounded-2xl space-y-4">
-                    <h3 className="text-sm font-bold text-white">Recent Activity</h3>
-                    <div className="space-y-4">
-                      <div className="flex items-start gap-3">
-                        <div className="w-8 h-8 rounded-full bg-sky-500/10 border border-sky-500/30 flex items-center justify-center text-sky-400 shrink-0">
-                          <UserCheck className="w-4 h-4" />
+                  {/* MIDDLE SPLIT: REVENUE OVERVIEW CHART + RECENT ACTIVITY */}
+                  <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                    {/* LEFT: REVENUE OVERVIEW (2/3 width) */}
+                    <div className="lg:col-span-8 p-6 bg-[#0b132b] border border-slate-800/80 rounded-2xl space-y-5">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <h3 className="text-sm font-bold text-white">Revenue Overview</h3>
+                          <p className="text-xs text-slate-400">
+                            Platform-wide SaaS licensing & M-Pesa transaction collections
+                          </p>
                         </div>
-                        <div className="min-w-0 flex-1">
-                          <div className="text-xs font-semibold text-white">New owner registered</div>
-                          <div className="text-[11px] text-slate-400">10 Oct 2025, 10:24 AM</div>
-                        </div>
+                        <span className="text-xs text-amber-400 font-semibold font-mono">Real-Time Ledger</span>
                       </div>
 
-                      <div className="flex items-start gap-3">
-                        <div className="w-8 h-8 rounded-full bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400 shrink-0">
-                          <DollarSign className="w-4 h-4" />
-                        </div>
-                        <div className="min-w-0 flex-1">
-                          <div className="text-xs font-semibold text-white">Payment received (KES 2,500)</div>
-                          <div className="text-[11px] text-slate-400">10 Oct 2025, 10:20 AM</div>
-                        </div>
-                      </div>
-
-                      <div className="flex items-start gap-3">
-                        <div className="w-8 h-8 rounded-full bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400 shrink-0">
-                          <Headphones className="w-4 h-4" />
-                        </div>
-                        <div className="min-w-0 flex-1">
-                          <div className="text-xs font-semibold text-white">Support ticket updated</div>
-                          <div className="text-[11px] text-slate-400">9 Oct 2025, 08:52 PM</div>
-                        </div>
-                      </div>
-
-                      <div className="flex items-start gap-3">
-                        <div className="w-8 h-8 rounded-full bg-red-500/10 border border-red-500/30 flex items-center justify-center text-red-400 shrink-0">
-                          <AlertTriangle className="w-4 h-4" />
-                        </div>
-                        <div className="min-w-0 flex-1">
-                          <div className="text-xs font-semibold text-white">Router offline alert</div>
-                          <div className="text-[11px] text-slate-400">8 Oct 2025, 12:45 PM</div>
-                        </div>
-                      </div>
-
-                      <div className="flex items-start gap-3">
-                        <div className="w-8 h-8 rounded-full bg-slate-500/10 border border-slate-500/30 flex items-center justify-center text-slate-400 shrink-0">
-                          <Clock className="w-4 h-4" />
-                        </div>
-                        <div className="min-w-0 flex-1">
-                          <div className="text-xs font-semibold text-white">Package expired</div>
-                          <div className="text-[11px] text-slate-400">7 Oct 2025, 11:30 AM</div>
+                      {/* GOLDEN SMOOTH SVG AREA CHART */}
+                      <div className="h-56 relative w-full pt-4">
+                        <svg className="w-full h-full overflow-visible" viewBox="0 0 600 180" preserveAspectRatio="none">
+                          <defs>
+                            <linearGradient id="adminGoldGrad" x1="0" y1="0" x2="0" y2="1">
+                              <stop offset="0%" stopColor="#f59e0b" stopOpacity="0.35" />
+                              <stop offset="100%" stopColor="#f59e0b" stopOpacity="0.0" />
+                            </linearGradient>
+                          </defs>
+                          {/* Area fill */}
+                          <path
+                            d="M 0 140 Q 60 110, 120 125 T 240 90 T 360 110 T 480 60 T 600 30 L 600 180 L 0 180 Z"
+                            fill="url(#adminGoldGrad)"
+                          />
+                          {/* Golden trend line */}
+                          <path
+                            d="M 0 140 Q 60 110, 120 125 T 240 90 T 360 110 T 480 60 T 600 30"
+                            fill="none"
+                            stroke="#f59e0b"
+                            strokeWidth="3.5"
+                            strokeLinecap="round"
+                          />
+                          {/* Data points */}
+                          <circle cx="120" cy="125" r="4" fill="#0b132b" stroke="#f59e0b" strokeWidth="2.5" />
+                          <circle cx="240" cy="90" r="4" fill="#0b132b" stroke="#f59e0b" strokeWidth="2.5" />
+                          <circle cx="360" cy="110" r="4" fill="#0b132b" stroke="#f59e0b" strokeWidth="2.5" />
+                          <circle cx="480" cy="60" r="4" fill="#0b132b" stroke="#f59e0b" strokeWidth="2.5" />
+                          <circle cx="600" cy="30" r="5" fill="#f59e0b" stroke="#ffffff" strokeWidth="2" />
+                        </svg>
+                        <div className="flex justify-between text-[11px] text-slate-500 font-mono pt-2 border-t border-slate-800">
+                          <span>Day 1</span>
+                          <span>Day 8</span>
+                          <span>Day 15</span>
+                          <span>Day 22</span>
+                          <span>Day 30</span>
                         </div>
                       </div>
                     </div>
+
+                    {/* RIGHT: RECENT ACTIVITY */}
+                    <div className="lg:col-span-4 p-6 bg-[#0b132b] border border-slate-800/80 rounded-2xl space-y-4">
+                      <h3 className="text-sm font-bold text-white">Recent Activity</h3>
+                      <div className="space-y-4">
+                        {recentActivities.length > 0 ? (
+                          recentActivities.map((act) => (
+                            <div key={act.id} className="flex items-start gap-3">
+                              <div
+                                className={`w-8 h-8 rounded-full border flex items-center justify-center shrink-0 ${act.color}`}
+                              >
+                                {act.icon}
+                              </div>
+                              <div className="min-w-0 flex-1">
+                                <div className="text-xs font-semibold text-white truncate">{act.title}</div>
+                                <div className="text-[11px] text-slate-400">{act.time}</div>
+                              </div>
+                            </div>
+                          ))
+                        ) : (
+                          <div className="py-8 text-center text-slate-500 text-xs">
+                            <Clock className="w-6 h-6 mx-auto mb-2 text-slate-600" />
+                            No recent activity recorded yet.
+                          </div>
+                        )}
+                      </div>
+                    </div>
                   </div>
-                </div>
 
                 {/* AUTOMATED BILLING CRON SERVICE STRIP */}
                 <div className="p-5 bg-slate-900 border border-slate-800 rounded-2xl flex flex-wrap items-center justify-between gap-4">
@@ -1115,7 +1129,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
               const approvedWithdrawals = withdrawals.filter((w) => w.status === 'COMPLETED' || w.status === 'APPROVED');
               const totalFeesCollected = withdrawals
                 .filter((w) => w.status === 'COMPLETED' || w.status === 'APPROVED')
-                .reduce((sum, w) => sum + (w.feeKes || Math.round(w.amount * 0.05)), 0);
+                .reduce((sum, w) => sum + (w.feeKes || Math.round((w.amountKes || w.amount || 0) * 0.05)), 0);
 
               return (
                 <div className="space-y-6">
@@ -1201,8 +1215,9 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                         <tbody className="divide-y divide-slate-800">
                           {withdrawals.length > 0 ? (
                             withdrawals.map((w) => {
-                              const fee = w.feeKes ?? Math.round(w.amount * 0.05);
-                              const net = w.netAmountKes ?? w.amount - fee;
+                              const rawAmount = w.amountKes || w.amount || 0;
+                              const fee = w.feeKes ?? Math.round(rawAmount * 0.05);
+                              const net = w.netAmountKes ?? (rawAmount - fee);
                               const isPending = w.status === 'PENDING';
 
                               return (
@@ -1215,7 +1230,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                                     {w.createdAt ? new Date(w.createdAt).toLocaleDateString() : 'Today'}
                                   </td>
                                   <td className="p-3.5 font-mono text-slate-200">
-                                    KES {w.amount.toLocaleString()}
+                                    KES {rawAmount.toLocaleString()}
                                   </td>
                                   <td className="p-3.5 font-mono text-amber-400 font-semibold">
                                     - KES {fee.toLocaleString()}

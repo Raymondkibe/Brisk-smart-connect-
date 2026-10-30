@@ -10,6 +10,9 @@ import type {
   WifiSession,
   Voucher,
   Transaction,
+  PppoeUser,
+  WithdrawalRequest,
+  ReferralCommission,
 } from '../types/index.ts';
 
 // Supabase credentials with priority from environment variables
@@ -319,4 +322,149 @@ export const supabaseDb = {
     if (updateErr) throw updateErr;
     return updated;
   },
+
+  /**
+   * Save or update WiFi package directly in Supabase
+   */
+  async saveWifiPackage(pkg: WifiPackage): Promise<boolean> {
+    try {
+      const { error } = await supabase.from('wifi_packages').upsert([
+        {
+          id: pkg.id,
+          name: pkg.name,
+          duration_hours: pkg.durationHours,
+          duration_label: pkg.durationLabel,
+          price_kes: pkg.priceKes,
+          speed_label: pkg.speedLabel,
+          download_speed_mbps: pkg.downloadSpeedMbps,
+          upload_speed_mbps: pkg.uploadSpeedMbps,
+          category: pkg.category,
+          device_limit: pkg.deviceLimit || 1,
+          fair_usage_gb: pkg.fairUsageGb || null,
+          is_popular: Boolean(pkg.isPopular),
+          description: pkg.description,
+        },
+      ]);
+      return !error;
+    } catch (e) {
+      console.warn('[Supabase] saveWifiPackage error:', e);
+      return false;
+    }
+  },
+
+  /**
+   * Delete WiFi package from Supabase
+   */
+  async deleteWifiPackage(packageId: string): Promise<boolean> {
+    try {
+      const { error } = await supabase.from('wifi_packages').delete().eq('id', packageId);
+      return !error;
+    } catch (e) {
+      console.warn('[Supabase] deleteWifiPackage error:', e);
+      return false;
+    }
+  },
+
+  /**
+   * Fetch PPPoE users from Supabase
+   */
+  async getPppoeUsers(): Promise<PppoeUser[] | null> {
+    try {
+      const { data, error } = await supabase.from('pppoe_users').select('*');
+      if (error || !data || data.length === 0) return null;
+      return data.map((u: any) => ({
+        id: u.id,
+        username: u.username,
+        ipAddress: u.ip_address,
+        routerName: u.router_name || 'Main Gateway',
+        speed: u.speed,
+        downloadMb: Number(u.download_mb || 0),
+        uploadMb: Number(u.upload_mb || 0),
+        connectedDuration: u.connected_duration || '0m',
+        expiresAt: u.expires_at,
+        status: u.status || 'CONNECTED',
+      }));
+    } catch (e) {
+      console.warn('[Supabase] getPppoeUsers fallback:', e);
+      return null;
+    }
+  },
+
+  /**
+   * Record PPPoE user in Supabase
+   */
+  async recordPppoeUser(user: PppoeUser): Promise<boolean> {
+    try {
+      const { error } = await supabase.from('pppoe_users').upsert([
+        {
+          id: user.id,
+          username: user.username,
+          ip_address: user.ipAddress,
+          router_name: user.routerName,
+          speed: user.speed,
+          status: user.status,
+          expires_at: user.expiresAt,
+        },
+      ]);
+      return !error;
+    } catch (e) {
+      console.warn('[Supabase] recordPppoeUser error:', e);
+      return false;
+    }
+  },
+
+  /**
+   * Record Withdrawal in Supabase
+   */
+  async recordWithdrawal(w: WithdrawalRequest): Promise<boolean> {
+    try {
+      const { error } = await supabase.from('withdrawals').upsert([
+        {
+          id: w.id,
+          user_id: w.userId,
+          user_name: w.userName,
+          user_role: w.userRole,
+          amount_kes: w.amountKes,
+          fee_kes: w.feeKes,
+          net_amount_kes: w.netAmountKes,
+          payment_method: w.paymentMethod,
+          phone: w.phone,
+          status: w.status,
+          requested_at: w.requestedAt,
+          notes: w.notes,
+        },
+      ]);
+      return !error;
+    } catch (e) {
+      console.warn('[Supabase] recordWithdrawal error:', e);
+      return false;
+    }
+  },
+
+  /**
+   * Record Referral Commission in Supabase
+   */
+  async recordReferralCommission(c: ReferralCommission): Promise<boolean> {
+    try {
+      const { error } = await supabase.from('referral_commissions').insert([
+        {
+          id: c.id,
+          referrer_id: c.referrerId,
+          referred_user_id: c.referredUserId,
+          referred_user_name: c.referredUserName,
+          purchase_package: c.purchasePackage,
+          purchase_amount_kes: c.purchaseAmountKes,
+          commission_kes: c.commissionKes,
+          rate_percent: c.ratePercent,
+          status: c.status,
+          created_at: c.createdAt,
+        },
+      ]);
+      return !error;
+    } catch (e) {
+      console.warn('[Supabase] recordReferralCommission error:', e);
+      return false;
+    }
+  },
 };
+

@@ -145,35 +145,25 @@ class BriskDatabase {
     this.customerProfiles.set(customerUser.id, {
       id: 'cp-01',
       userId: customerUser.id,
-      internetStatus: 'CONNECTED',
-      currentNetwork: 'BRISK Kiambu',
-      currentSpeed: '10 Mbps',
-      dataUsageMb: 1240,
-      walletBalance: 1200,
-      referralCode: 'RAYMOND123',
-      totalReferrals: 23,
-      commissionEarned: 1850,
-      availableCommission: 1200,
-      currentPackage: {
-        id: 'cpkg-free-01',
-        packageId: 'pkg-free-3d',
-        packageName: '3 Days Free',
-        activatedAt: now.toISOString(),
-        expiresAt: freeExpires.toISOString(),
-        status: 'ACTIVE',
-        speed: '10 Mbps',
-        isFreeWelcomePackage: true,
-      },
+      internetStatus: 'DISCONNECTED',
+      currentNetwork: 'BRISK Smart Connect',
+      currentSpeed: '0 Mbps',
+      dataUsageMb: 0,
+      walletBalance: 0,
+      referralCode: 'BRK' + Math.floor(100000 + Math.random() * 900000),
+      totalReferrals: 0,
+      commissionEarned: 0,
+      availableCommission: 0,
     });
 
     // 3. Router Owner Profile with 14-Day Free Trial
-    const trialStarted = new Date('2026-09-28T00:00:00Z');
-    const trialEnds = new Date('2026-10-12T23:59:59Z');
+    const trialStarted = new Date();
+    const trialEnds = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000);
 
     this.routerOwnerProfiles.set(ownerUser.id, {
       id: 'rop-01',
       userId: ownerUser.id,
-      businessName: 'Kiambu Smart WiFi Networks',
+      businessName: 'BRISK Smart WiFi Networks',
       subscriptionPlanId: 'sub-plan-starter',
       subscriptionStatus: 'TRIAL',
       trialStartedAt: trialStarted.toISOString(),
@@ -182,9 +172,9 @@ class BriskDatabase {
       maxRouters: 5,
       maxAccessPoints: 20,
       maxCustomers: 3000,
-      darajaConfigured: true,
-      whatsappConfigured: true,
-      emailConfigured: true,
+      darajaConfigured: false,
+      whatsappConfigured: false,
+      emailConfigured: false,
     });
 
     // 4. Official Customer WiFi Packages (from spec)
@@ -519,654 +509,61 @@ class BriskDatabase {
       },
     ];
 
-    // 6. Connected Routers
-    this.routers = [
-      {
-        id: 'rtr-01',
-        ownerId: ownerUser.id,
-        ownerName: 'Raymond Kamau',
-        name: 'Kiambu Main Gateway',
-        location: 'Kiambu Central Market, 2nd Floor',
-        networkName: 'BRISK Kiambu',
-        model: 'MikroTik RB4011iGS+RM',
-        ipAddress: '192.168.88.1',
-        routerOsVersion: 'RouterOS 7.15.2',
-        status: 'ONLINE',
-        cpuLoadPercent: 18,
-        ramUsagePercent: 32,
-        uptime: '28d 14h 12m',
-        internetStatus: 'ONLINE',
-        activeUsers: 87,
-        uploadTrafficMbps: 24.8,
-        downloadTrafficMbps: 78.4,
-        lastHeartbeat: '1 min ago',
-        connectionMethod: 'RouterOS API',
-      },
-      {
-        id: 'rtr-02',
-        ownerId: ownerUser.id,
-        ownerName: 'Raymond Kamau',
-        name: 'Ndumberi Hub Router',
-        location: 'Ndumberi Town Plaza, Wing B',
-        networkName: 'BRISK Ndumberi',
-        model: 'MikroTik hAP ac3',
-        ipAddress: '192.168.89.1',
-        routerOsVersion: 'RouterOS 7.14.3',
-        status: 'ONLINE',
-        cpuLoadPercent: 24,
-        ramUsagePercent: 41,
-        uptime: '14d 06h 40m',
-        internetStatus: 'ONLINE',
-        activeUsers: 30,
-        uploadTrafficMbps: 8.5,
-        downloadTrafficMbps: 32.1,
-        lastHeartbeat: '2 mins ago',
-        connectionMethod: 'BRISK Setup Script',
-      },
-      {
-        id: 'rtr-03',
-        ownerId: ownerUser.id,
-        ownerName: 'Raymond Kamau',
-        name: 'Tinganga Relay Node',
-        location: 'Tinganga Shopping Complex',
-        networkName: 'BRISK Tinganga',
-        model: 'MikroTik CCR2004-16G-2S+',
-        ipAddress: '192.168.90.1',
-        routerOsVersion: 'RouterOS 7.15.1',
-        status: 'WARNING',
-        cpuLoadPercent: 78,
-        ramUsagePercent: 62,
-        uptime: '6d 18h 05m',
-        internetStatus: 'ONLINE',
-        activeUsers: 21,
-        uploadTrafficMbps: 12.2,
-        downloadTrafficMbps: 44.0,
-        lastHeartbeat: '3 mins ago',
-        connectionMethod: 'WireGuard',
-      },
-      {
-        id: 'rtr-04',
-        ownerId: ownerUser.id,
-        ownerName: 'Raymond Kamau',
-        name: 'Thika Road Edge Hub',
-        location: 'Roysambu Commercial Center',
-        networkName: 'BRISK Roysambu',
-        model: 'OpenWrt AX3000 Custom',
-        ipAddress: '192.168.91.1',
-        routerOsVersion: 'OpenWrt 23.05.3',
-        status: 'ONLINE',
-        cpuLoadPercent: 12,
-        ramUsagePercent: 28,
-        uptime: '19d 02h 11m',
-        internetStatus: 'ONLINE',
-        activeUsers: 14,
-        uploadTrafficMbps: 4.1,
-        downloadTrafficMbps: 18.6,
-        lastHeartbeat: '4 mins ago',
-        connectionMethod: 'REST API',
-      },
-    ];
+    // 6. Connected Routers (Real live state — populated when router owners enroll MikroTik routers)
+    this.routers = [];
 
     // 7. Access Points
-    this.accessPoints = [
-      {
-        id: 'ap-01',
-        routerId: 'rtr-01',
-        routerName: 'Kiambu Main Gateway',
-        name: 'AP 01 Kiambu Market',
-        location: 'Open Produce Section',
-        ssid: 'BRISK_Smart_WiFi_Kiambu',
-        ipAddress: '192.168.88.10',
-        model: 'Ubiquiti UniFi U6-Pro',
-        status: 'ONLINE',
-        connectedUsers: 34,
-        trafficMbps: 36.4,
-        uptime: '28d 14h',
-        lastSeen: 'Just now',
-      },
-      {
-        id: 'ap-02',
-        routerId: 'rtr-01',
-        routerName: 'Kiambu Main Gateway',
-        name: 'AP 02 Kiambu Stage',
-        location: 'Bus Terminal Waiting Bay',
-        ssid: 'BRISK_Smart_WiFi_Kiambu',
-        ipAddress: '192.168.88.11',
-        model: 'TP-Link Omada EAP650-Outdoor',
-        status: 'ONLINE',
-        connectedUsers: 53,
-        trafficMbps: 42.0,
-        uptime: '28d 14h',
-        lastSeen: 'Just now',
-      },
-      {
-        id: 'ap-03',
-        routerId: 'rtr-02',
-        routerName: 'Ndumberi Hub Router',
-        name: 'AP 03 Ndumberi Town',
-        location: 'Main Street Post Office',
-        ssid: 'BRISK_Smart_WiFi_Ndumberi',
-        ipAddress: '192.168.89.10',
-        model: 'Ubiquiti UniFi AC-Lite',
-        status: 'ONLINE',
-        connectedUsers: 18,
-        trafficMbps: 18.2,
-        uptime: '14d 06h',
-        lastSeen: 'Just now',
-      },
-      {
-        id: 'ap-04',
-        routerId: 'rtr-02',
-        routerName: 'Ndumberi Hub Router',
-        name: 'AP 04 Ndumberi Plaza',
-        location: 'Plaza Food Court',
-        ssid: 'BRISK_Smart_WiFi_Ndumberi',
-        ipAddress: '192.168.89.11',
-        model: 'TP-Link Omada EAP610',
-        status: 'ONLINE',
-        connectedUsers: 12,
-        trafficMbps: 13.9,
-        uptime: '14d 06h',
-        lastSeen: 'Just now',
-      },
-      {
-        id: 'ap-05',
-        routerId: 'rtr-03',
-        routerName: 'Tinganga Relay Node',
-        name: 'AP 05 Tinganga Center',
-        location: 'Shopping Hall Center',
-        ssid: 'BRISK_Smart_WiFi_Tinganga',
-        ipAddress: '192.168.90.10',
-        model: 'MikroTik cAP ax',
-        status: 'ONLINE',
-        connectedUsers: 21,
-        trafficMbps: 22.5,
-        uptime: '6d 18h',
-        lastSeen: 'Just now',
-      },
-    ];
+    this.accessPoints = [];
 
     // 8. Active Sessions
-    this.wifiSessions = [
-      {
-        id: 'sess-01',
-        customerId: customerUser.id,
-        customerName: 'John Doe',
-        routerId: 'rtr-01',
-        routerName: 'Kiambu Main Gateway',
-        apName: 'AP 01 Kiambu Market',
-        ipAddress: '192.168.88.142',
-        macAddress: 'DC:A6:32:89:BC:11',
-        packageName: '3 Days Free',
-        speed: '10 Mbps',
-        connectedAt: '2026-09-28T04:30:00Z',
-        usageMb: 1240,
-        remainingSeconds: 225120, // ~2.6 days
-      },
-      {
-        id: 'sess-02',
-        customerId: 'usr-cust-02',
-        customerName: 'Mary Wambui',
-        routerId: 'rtr-01',
-        routerName: 'Kiambu Main Gateway',
-        apName: 'AP 02 Kiambu Stage',
-        ipAddress: '192.168.88.165',
-        macAddress: '48:2C:6A:19:D4:F2',
-        packageName: '1 Day',
-        speed: '10 Mbps',
-        connectedAt: '2026-09-28T02:15:00Z',
-        usageMb: 820,
-        remainingSeconds: 68400,
-      },
-      {
-        id: 'sess-03',
-        customerId: 'usr-cust-03',
-        customerName: 'Kevin Omondi',
-        routerId: 'rtr-02',
-        routerName: 'Ndumberi Hub Router',
-        apName: 'AP 03 Ndumberi Town',
-        ipAddress: '192.168.89.122',
-        macAddress: '80:7D:3A:45:90:E1',
-        packageName: '7 Days',
-        speed: '20 Mbps',
-        connectedAt: '2026-09-26T11:00:00Z',
-        usageMb: 8400,
-        remainingSeconds: 432000,
-      },
-    ];
+    this.wifiSessions = [];
 
-    // 9. PPPoE Users
-    this.pppoeUsers = [
-      {
-        id: 'pppoe-01',
-        username: 'hotel_kiambu_guest',
-        ipAddress: '10.10.20.14',
-        routerName: 'Kiambu Main Gateway',
-        speed: '30 Mbps / 20 Mbps',
-        downloadMb: 45200,
-        uploadMb: 12300,
-        connectedDuration: '12d 04h',
-        expiresAt: '2026-10-15T23:59:59Z',
-        status: 'CONNECTED',
-      },
-      {
-        id: 'pppoe-02',
-        username: 'cyber_ndumberi',
-        ipAddress: '10.10.30.22',
-        routerName: 'Ndumberi Hub Router',
-        speed: '50 Mbps / 30 Mbps',
-        downloadMb: 128400,
-        uploadMb: 41200,
-        connectedDuration: '18d 09h',
-        expiresAt: '2026-10-20T23:59:59Z',
-        status: 'CONNECTED',
-      },
-    ];
+    // 9. PPPoE Users (Populated when router owner registers subscribers)
+    this.pppoeUsers = [];
 
-    // 10. Initial Vouchers
-    this.vouchers = [
-      {
-        id: 'vch-01',
-        code: 'BRK-8821-4920',
-        packageId: 'pkg-1d',
-        packageName: '1 Day',
-        durationHours: 24,
-        priceKes: 80,
-        speed: '10 Mbps',
-        network: 'BRISK Kiambu',
-        status: 'UNUSED',
-        createdAt: '2026-09-27T10:00:00Z',
-        expiresAt: '2026-10-27T10:00:00Z',
-        batchNumber: 'BATCH-2026-09-A',
-      },
-      {
-        id: 'vch-02',
-        code: 'BRK-3391-7712',
-        packageId: 'pkg-3d',
-        packageName: '3 Days',
-        durationHours: 72,
-        priceKes: 200,
-        speed: '15 Mbps',
-        network: 'BRISK Kiambu',
-        status: 'UNUSED',
-        createdAt: '2026-09-27T10:00:00Z',
-        expiresAt: '2026-10-27T10:00:00Z',
-        batchNumber: 'BATCH-2026-09-A',
-      },
-      {
-        id: 'vch-03',
-        code: 'BRK-5541-1299',
-        packageId: 'pkg-7d',
-        packageName: '7 Days',
-        durationHours: 168,
-        priceKes: 500,
-        speed: '20 Mbps',
-        network: 'BRISK Ndumberi',
-        status: 'UNUSED',
-        createdAt: '2026-09-27T10:00:00Z',
-        expiresAt: '2026-10-27T10:00:00Z',
-        batchNumber: 'BATCH-2026-09-B',
-      },
-      {
-        id: 'vch-04',
-        code: 'BRK-1122-3344',
-        packageId: 'pkg-1d',
-        packageName: '1 Day',
-        durationHours: 24,
-        priceKes: 80,
-        speed: '10 Mbps',
-        network: 'BRISK Kiambu',
-        status: 'REDEEMED',
-        createdAt: '2026-09-26T08:00:00Z',
-        expiresAt: '2026-10-26T08:00:00Z',
-        redeemedByCustomerName: 'Mary Wambui',
-        redeemedAt: '2026-09-28T02:15:00Z',
-        batchNumber: 'BATCH-2026-09-A',
-      },
-    ];
+    // 10. Vouchers (Populated when router owner generates scratchcard batches)
+    this.vouchers = [];
 
-    // 11. Initial Transactions — Explicitly Separated by Business Model Flows
-    this.transactions = [
-      // PENDING CUSTOMER TRANSACTIONS AWAITING VALIDATION & AUTO-ACTIVATION
-      {
-        id: 'tx-pend-01',
-        receiptNumber: 'BRK-PEND-001',
-        userId: 'usr-cust-01',
-        userName: 'Alice Wanjiku',
-        type: 'CUSTOMER_WIFI',
-        flowCategory: 'ISP_REVENUE',
-        ispBusinessName: 'Kiambu Smart WiFi Networks',
-        beneficiaryName: 'Kiambu Smart WiFi Networks (ISP)',
-        recipientAccount: 'Till 882194 / Kiambu Smart WiFi',
-        packageName: '24 Hours Unlimited (10 Mbps)',
-        amountKes: 80,
-        paymentMethod: 'M-PESA',
-        reference: 'QKR839210P',
-        status: 'WAITING',
-        createdAt: new Date(Date.now() - 6 * 60 * 1000).toISOString(),
-        mpesaPhone: '0712345678',
-      },
-      {
-        id: 'tx-pend-02',
-        receiptNumber: 'BRK-PEND-002',
-        userId: 'usr-cust-02',
-        userName: 'Brian Kiprono',
-        type: 'CUSTOMER_WIFI',
-        flowCategory: 'ISP_REVENUE',
-        ispBusinessName: 'Kiambu Smart WiFi Networks',
-        beneficiaryName: 'Kiambu Smart WiFi Networks (ISP)',
-        recipientAccount: 'Till 882194 / Kiambu Smart WiFi',
-        packageName: '7 Days Unlimited (20 Mbps)',
-        amountKes: 500,
-        paymentMethod: 'M-PESA',
-        reference: 'SK991024MC',
-        status: 'WAITING',
-        createdAt: new Date(Date.now() - 18 * 60 * 1000).toISOString(),
-        mpesaPhone: '0723456789',
-      },
-      {
-        id: 'tx-pend-03',
-        receiptNumber: 'BRK-PEND-003',
-        userId: 'usr-cust-03',
-        userName: 'Mercy Achieng',
-        type: 'CUSTOMER_WIFI',
-        flowCategory: 'ISP_REVENUE',
-        ispBusinessName: 'Kiambu Smart WiFi Networks',
-        beneficiaryName: 'Kiambu Smart WiFi Networks (ISP)',
-        recipientAccount: 'Till 882194 / Kiambu Smart WiFi',
-        packageName: '30 Days Standard Home WiFi (20 Mbps)',
-        amountKes: 1500,
-        paymentMethod: 'M-PESA',
-        reference: 'TK449182XZ',
-        status: 'WAITING',
-        createdAt: new Date(Date.now() - 35 * 60 * 1000).toISOString(),
-        mpesaPhone: '0798765432',
-      },
-      // Flow 1: Platform Subscription (ISP Owner -> BRISK Smart Connect)
-      {
-        id: 'tx-sub-01',
-        receiptNumber: 'BRK-SUB-000101',
-        userId: ownerUser.id,
-        userName: 'Raymond Kamau (Kiambu Smart WiFi)',
-        type: 'ROUTER_OWNER_SUBSCRIPTION',
-        flowCategory: 'PLATFORM_SAAS',
-        beneficiaryName: 'BRISK Smart Connect (Platform SaaS)',
-        recipientAccount: 'BRISK Platform Paybill 408801',
-        packageName: 'Standard Plan (30 Days · 5 Routers / 3,000 Users)',
-        amountKes: 1500,
-        paymentMethod: 'M-PESA',
-        reference: 'QGK3391SUB',
-        status: 'SUCCESS',
-        createdAt: '2026-09-28T00:05:00Z',
-        mpesaPhone: '0722000111',
-      },
-      // Flow 2: ISP Customer Hotspot Access (Customer -> ISP Owner)
-      {
-        id: 'tx-01',
-        receiptNumber: 'BRK-000001',
-        userId: customerUser.id,
-        userName: 'John Doe',
-        type: 'CUSTOMER_WIFI',
-        flowCategory: 'ISP_REVENUE',
-        ispBusinessName: 'Kiambu Smart WiFi Networks',
-        beneficiaryName: 'Kiambu Smart WiFi Networks (ISP)',
-        recipientAccount: 'BRISK Kiambu Welcome Voucher',
-        packageName: '3 Days Free Welcome Pass',
-        amountKes: 0,
-        paymentMethod: 'VOUCHER',
-        reference: 'BRK-FREE-WELCOME',
-        status: 'SUCCESS',
-        createdAt: '2026-09-28T04:30:00Z',
-      },
-      {
-        id: 'tx-02',
-        receiptNumber: 'BRK-000002',
-        userId: 'usr-cust-02',
-        userName: 'Mary Wambui',
-        type: 'CUSTOMER_WIFI',
-        flowCategory: 'ISP_REVENUE',
-        ispBusinessName: 'Kiambu Smart WiFi Networks',
-        beneficiaryName: 'Kiambu Smart WiFi Networks (ISP)',
-        recipientAccount: 'Till 882194 / Kiambu Smart WiFi',
-        packageName: '1 Day (10 Mbps)',
-        amountKes: 80,
-        paymentMethod: 'M-PESA',
-        reference: 'QGK7294KLS',
-        status: 'SUCCESS',
-        createdAt: '2026-09-28T02:15:00Z',
-        mpesaPhone: '0711987654',
-      },
-      {
-        id: 'tx-03',
-        receiptNumber: 'BRK-000003',
-        userId: 'usr-cust-03',
-        userName: 'Kevin Omondi',
-        type: 'CUSTOMER_WIFI',
-        flowCategory: 'ISP_REVENUE',
-        ispBusinessName: 'Kiambu Smart WiFi Networks',
-        beneficiaryName: 'Kiambu Smart WiFi Networks (ISP)',
-        recipientAccount: 'Till 882194 / Kiambu Smart WiFi',
-        packageName: '7 Days (20 Mbps)',
-        amountKes: 500,
-        paymentMethod: 'M-PESA',
-        reference: 'QGK8819MPR',
-        status: 'SUCCESS',
-        createdAt: '2026-09-26T11:00:00Z',
-        mpesaPhone: '0722334455',
-      },
-      // Flow 3: ISP PPPoE Home Fibre Subscriber (Customer -> ISP Owner)
-      {
-        id: 'tx-04',
-        receiptNumber: 'BRK-000004',
-        userId: 'usr-cust-04',
-        userName: 'Hotel Kiambu Guest PPPoE',
-        type: 'CUSTOMER_PPPOE',
-        flowCategory: 'ISP_REVENUE',
-        ispBusinessName: 'Kiambu Smart WiFi Networks',
-        beneficiaryName: 'Kiambu Smart WiFi Networks (ISP)',
-        recipientAccount: 'Paybill 789123 / Acc: HOTEL_KIAMBU',
-        packageName: 'Monthly Advanced 30 Mbps PPPoE Fiber',
-        amountKes: 3500,
-        paymentMethod: 'M-PESA',
-        reference: 'QGK9021PPPOE',
-        status: 'SUCCESS',
-        createdAt: '2026-09-27T08:30:00Z',
-        mpesaPhone: '0722119988',
-      },
-    ];
+    // 11. Transactions (Populated when customers purchase packages or submit transition codes)
+    this.transactions = [];
 
     // 12. Referral Commissions
-    this.commissions = [
-      {
-        id: 'comm-01',
-        referrerId: customerUser.id,
-        referredUserId: 'usr-cust-02',
-        referredUserName: 'Mary Wambui',
-        purchasePackage: '7 Days (KES 500)',
-        purchaseAmountKes: 500,
-        commissionKes: 50,
-        ratePercent: 10,
-        createdAt: '2026-09-27T14:20:00Z',
-        status: 'EARNED',
-      },
-      {
-        id: 'comm-02',
-        referrerId: customerUser.id,
-        referredUserId: 'usr-cust-03',
-        referredUserName: 'Kevin Omondi',
-        purchasePackage: 'Monthly Standard (KES 2,500)',
-        purchaseAmountKes: 2500,
-        commissionKes: 250,
-        ratePercent: 10,
-        createdAt: '2026-09-26T11:05:00Z',
-        status: 'EARNED',
-      },
-    ];
+    this.commissions = [];
 
     // 13. Withdrawals
-    this.withdrawals = [
-      {
-        id: 'wdr-01',
-        userId: customerUser.id,
-        userName: 'John Doe',
-        userRole: 'CUSTOMER',
-        amountKes: 650,
-        paymentMethod: 'M-PESA',
-        phone: '0799123456',
-        status: 'COMPLETED',
-        requestedAt: '2026-09-25T09:15:00Z',
-        processedAt: '2026-09-25T09:45:00Z',
-        notes: 'Disbursed via Safaricom B2C',
-      },
-    ];
+    this.withdrawals = [];
 
     // 14. Installation Requests
-    this.installations = [
-      {
-        id: 'inst-01',
-        userId: ownerUser.id,
-        userName: 'Raymond Kamau',
-        phone: '0722000111',
-        type: 'WIRED',
-        priceKes: 2999,
-        location: 'Kiambu Town Market Plaza, Unit 4',
-        preferredDate: '2026-10-02',
-        preferredTime: '10:00 AM',
-        notes: 'Need outdoor Cat6 STP cabling to rooftop antenna',
-        status: 'ASSIGNED',
-        assignedTechnicianName: 'Francis Mwangi',
-        technicianPhone: '0722888999',
-        createdAt: '2026-09-27T16:00:00Z',
-      },
-      {
-        id: 'inst-02',
-        userId: 'usr-cust-04',
-        userName: 'David Mutua',
-        phone: '0714556677',
-        type: 'WIRELESS',
-        priceKes: 8499,
-        location: 'Ndumberi Heights Residential Block C',
-        preferredDate: '2026-10-04',
-        preferredTime: '02:00 PM',
-        notes: 'PTP link from water tower to building rooftop',
-        status: 'CONFIRMED',
-        createdAt: '2026-09-28T01:30:00Z',
-      },
-    ];
+    this.installations = [];
 
     // 15. Network Incidents
-    this.incidents = [
-      {
-        id: 'inc-01',
-        incidentNumber: 'BRK-000123',
-        networkName: 'Kiambu Network',
-        routerName: 'Kiambu Main Gateway',
-        status: 'RESOLVED',
-        startedAt: '2026-09-26T14:32:00Z',
-        lastHeartbeat: '2026-09-26T14:31:00Z',
-        affectedUsers: 84,
-        resolvedAt: '2026-09-26T14:50:00Z',
-        downtimeMinutes: 18,
-      },
-    ];
+    this.incidents = [];
 
     // 16. Business Profile for Router Owner
     this.businessProfiles.set(ownerUser.id, {
-      handle: 'kiambu_smart_wifi',
-      businessName: 'Kiambu Smart WiFi Networks',
+      handle: 'brisk_smart_wifi',
+      businessName: 'BRISK Smart WiFi Networks',
       logoUrl: '',
       coverImageUrl: '',
-      description:
-        'Official high-speed community WiFi hotspot and fiber provider across Kiambu Central Market, Bus Terminus, and Ndumberi.',
-      location: 'Kiambu Central Market, 2nd Floor, Suite 210',
+      description: 'High-speed community WiFi hotspot and fiber provider with instant M-Pesa activations.',
+      location: 'Central Network Operations Hub',
       phone: '+254 722 000 111',
       whatsapp: '+254 722 000 111',
-      email: 'support@kiambuwifi.co.ke',
-      openingHours: 'Mon - Sun: 6:00 AM - 11:00 PM',
+      email: 'support@briskconnect.co.ke',
+      openingHours: '24/7 Uninterrupted',
       services: ['Public WiFi Hotspot', 'Home PPPoE Fiber', 'Voucher Cards', 'WiFi Host Setup'],
       wifiAvailability: '24/7 Uninterrupted with Backup Solar & Inverter',
       supportContact: 'Call / WhatsApp: 0722 000 111',
     });
 
     // 17. Support Tickets
-    this.tickets = [
-      {
-        id: 'tkt-01',
-        userId: customerUser.id,
-        userName: 'John Doe',
-        category: 'WIFI',
-        subject: 'Signal coverage in Section 4 of Market',
-        description: 'Internet is very fast at the gate, but gets lower at section 4 near the dairy depot.',
-        priority: 'MEDIUM',
-        status: 'IN_PROGRESS',
-        assignedTo: 'Support Team',
-        createdAt: '2026-09-27T12:00:00Z',
-        updatedAt: '2026-09-27T13:10:00Z',
-        replies: [
-          {
-            id: 'rep-01',
-            senderName: 'BRISK Support',
-            isAdmin: true,
-            message: 'Hello John, we have scheduled a technician to install an outdoor booster AP at Section 4 this week.',
-            createdAt: '2026-09-27T13:10:00Z',
-          },
-        ],
-      },
-    ];
+    this.tickets = [];
 
     // 18. Audit Logs
-    this.auditLogs = [
-      {
-        id: 'log-01',
-        userName: 'Super Admin',
-        userRole: 'SUPER_ADMIN',
-        action: 'PLATFORM_BOOTSTRAP',
-        resource: 'SYSTEM',
-        ipAddress: '197.237.10.4',
-        timestamp: '2026-09-28T04:00:00Z',
-        result: 'SUCCESS',
-        details: 'Initial system services and router monitors loaded.',
-      },
-      {
-        id: 'log-02',
-        userName: 'Raymond Kamau',
-        userRole: 'ROUTER_OWNER',
-        action: 'TRIAL_ACTIVATED',
-        resource: 'ROUTER_OWNER',
-        ipAddress: '105.160.28.91',
-        timestamp: '2026-09-28T04:00:00Z',
-        result: 'SUCCESS',
-        details: '14-Day Free Trial initiated automatically.',
-      },
-      {
-        id: 'log-03',
-        userName: 'John Doe',
-        userRole: 'CUSTOMER',
-        action: 'FREE_PACKAGE_ACTIVATED',
-        resource: 'CUSTOMER_WIFI',
-        ipAddress: '192.168.88.142',
-        timestamp: '2026-09-28T04:30:00Z',
-        result: 'SUCCESS',
-        details: 'Welcome 3-Day Free Package activated automatically.',
-      },
-    ];
+    this.auditLogs = [];
 
     // 19. Host Applications
-    this.hostApplications = [
-      {
-        id: 'host-01',
-        fullName: 'Patrick Njoroge',
-        phone: '0721445566',
-        email: 'patrick@njoroge.co.ke',
-        location: 'Kiambu Road Total Station Coffee House',
-        internetProvider: 'Safaricom Home Fibre',
-        speedMbps: 100,
-        routerModel: 'Huawei HG8245H5 + UniFi AP',
-        availability: '24 Hours',
-        status: 'PENDING',
-        submittedAt: '2026-09-27T18:00:00Z',
-      },
-    ];
+    this.hostApplications = [];
 
     // 20. Seed Captive Portal Customization Configuration
     const defaultPortalConfig: PortalConfig = {
@@ -1201,91 +598,10 @@ class BriskDatabase {
 
     this.portalConfigs.set('usr-owner-01', defaultPortalConfig);
 
-    // Router Owner Custom WiFi Packages (Official system packages removed from owner captive portal)
-    const ownerCustomPackages: WifiPackage[] = [
-      {
-        id: 'pkg-owner-01',
-        name: '2 Hours Turbo Pass',
-        durationHours: 2,
-        durationLabel: '2 hours',
-        priceKes: 30,
-        speedLabel: '15 Mbps',
-        downloadSpeedMbps: 15,
-        uploadSpeedMbps: 10,
-        category: 'HOURLY',
-        description: 'Instant high-speed internet access for browsing & streaming',
-        deviceLimit: 1,
-        isCustom: true,
-        tenantId: 'usr-owner-01',
-      },
-      {
-        id: 'pkg-owner-02',
-        name: '12 Hours Day Pass',
-        durationHours: 12,
-        durationLabel: '12 hours',
-        priceKes: 60,
-        speedLabel: '20 Mbps',
-        downloadSpeedMbps: 20,
-        uploadSpeedMbps: 15,
-        category: 'DAILY',
-        description: 'All-day uncapped fiber WiFi pass for streaming & remote work',
-        isPopular: true,
-        deviceLimit: 2,
-        isCustom: true,
-        tenantId: 'usr-owner-01',
-      },
-      {
-        id: 'pkg-owner-03',
-        name: '24 Hours Full Day Pass',
-        durationHours: 24,
-        durationLabel: '24 hours',
-        priceKes: 100,
-        speedLabel: '25 Mbps',
-        downloadSpeedMbps: 25,
-        uploadSpeedMbps: 20,
-        category: 'DAILY',
-        description: '24-hour uninterrupted connectivity with multi-device support',
-        deviceLimit: 2,
-        isCustom: true,
-        tenantId: 'usr-owner-01',
-      },
-    ];
-    this.customPackages.set('usr-owner-01', ownerCustomPackages);
-
-    const defaultAssignments: PortalPackageAssignment[] = ownerCustomPackages.map((pkg, idx) => ({
-      id: `assign-${pkg.id}`,
-      tenantId: 'usr-owner-01',
-      portalConfigId: defaultPortalConfig.id,
-      officialPackageId: pkg.id,
-      isEnabled: true,
-      displayOrder: idx + 1,
-      isHighlighted: pkg.isPopular || false,
-      customDescription: pkg.description,
-    }));
-    this.portalPackageAssignments.set('usr-owner-01', defaultAssignments);
-
-    this.portalVersions.set('usr-owner-01', [
-      {
-        id: 'ver-01',
-        tenantId: 'usr-owner-01',
-        portalConfigId: defaultPortalConfig.id,
-        versionNumber: 1,
-        publishedConfiguration: {
-          ...defaultPortalConfig,
-          pages: {
-            WELCOME: {
-              welcomeHeading: 'High-Speed Internet Hotspot',
-              welcomeSubheading: 'Instant M-Pesa automated activations',
-              welcomeButtonText: 'Connect Now',
-            },
-          },
-          packageAssignments: defaultAssignments,
-        },
-        publishedBy: 'James Kamau (Kiambu WiFi)',
-        publishedAt: '2026-10-18T14:30:00Z',
-        summary: 'Initial production portal release with M-Pesa Daraja and Voucher redemption',
-      },
-    ]);
+    // Router Owner Custom WiFi Packages (Starts clean — created dynamically by router owners)
+    this.customPackages.set('usr-owner-01', []);
+    this.portalPackageAssignments.set('usr-owner-01', []);
+    this.portalVersions.set('usr-owner-01', []);
 
     // 21. Seed Router Owner Integrations (Per-Tenant Isolated Configurations)
     const ownerIntegrations: OwnerIntegration[] = [
@@ -1793,235 +1109,20 @@ class BriskDatabase {
       },
     ]);
 
-    // 27. Seed Owner Payment Methods (Payout Channels)
-    this.paymentMethods = [
-      {
-        id: 'pm-01',
-        owner_id: 'usr-owner-01',
-        owner_name: 'Raymond Kamau',
-        phone: '0722000111',
-        type: 'MPESA_TILL',
-        label: 'M-Pesa Buy Goods',
-        number: '5414200',
-        business_name: 'Kiambu Smart WiFi Networks',
-        status: 'active',
-        created_at: new Date(Date.now() - 3600000 * 72).toISOString(),
-        verified_at: new Date(Date.now() - 3600000 * 48).toISOString(),
-      },
-      {
-        id: 'pm-02',
-        owner_id: 'usr-owner-01',
-        owner_name: 'Raymond Kamau',
-        phone: '0722000111',
-        type: 'MPESA_PAYBILL',
-        label: 'M-Pesa Paybill',
-        number: '408801',
-        business_name: 'Kiambu FastNet Services',
-        status: 'active',
-        created_at: new Date(Date.now() - 3600000 * 36).toISOString(),
-        verified_at: new Date(Date.now() - 3600000 * 18).toISOString(),
-      },
-      {
-        id: 'pm-03',
-        owner_id: 'usr-owner-02',
-        owner_name: 'Beatrice Njeri',
-        phone: '0733555222',
-        type: 'MPESA_TILL',
-        label: 'M-Pesa Buy Goods',
-        number: '9823101',
-        business_name: 'Thika Express WiFi',
-        status: 'pending',
-        created_at: new Date(Date.now() - 3600000 * 4).toISOString(),
-      },
-      {
-        id: 'pm-04',
-        owner_id: 'usr-owner-03',
-        owner_name: 'Dennis Kiprono',
-        phone: '0744777888',
-        type: 'BANK',
-        label: 'Equity Bank Payout',
-        number: '0180293847291',
-        business_name: 'Rongai Hotspot Co.',
-        status: 'pending',
-        bank_name: 'Equity Bank Kenya',
-        account_name: 'Dennis Kiprono',
-        created_at: new Date(Date.now() - 3600000 * 8).toISOString(),
-      },
-    ];
+    // 27. Owner Payment Methods (Payout Channels)
+    this.paymentMethods = [];
 
-    // 28. Seed Router Setup Scripts & Tokens
-    this.setupScripts = [
-      {
-        id: 'script-01',
-        token: 'brk-tok-9841-8842-mikrotik',
-        ownerId: 'usr-owner-01',
-        routerName: 'Kiambu Main Gateway',
-        vendor: 'mikrotik_v7',
-        vendorLabel: 'MikroTik RouterOS 7.x (Recommended)',
-        connectionMethod: 'Outbound Connector Agent',
-        scriptContent: `/ip hotspot profile\nset [find] login-by=http-chap,http-pap,mac-cookie use-radius=yes\n/ip hotspot walled-garden\nadd action=accept comment="BRISK Portal" dst-host=*.vercel.app\nadd action=accept comment="Daraja M-Pesa" dst-host=*.safaricom.co.ke\n/system script add name=brisk-sync source="/tool fetch url=\\"https://wifi.brisk.co.ke/api/router/heartbeat?token=brk-tok-9841-8842-mikrotik\\" keep-result=no"`,
-        rollbackContent: `/ip hotspot walled-garden remove [find comment="BRISK Portal"]\n/ip hotspot walled-garden remove [find comment="Daraja M-Pesa"]\n/system script remove [find name=brisk-sync]`,
-        status: 'CONNECTED',
-        createdAt: new Date(Date.now() - 3600000 * 24).toISOString(),
-        expiresAt: '2099-12-31T23:59:59Z',
-        lastTestedAt: new Date(Date.now() - 300000).toISOString(),
-      },
-      {
-        id: 'script-02',
-        token: 'brk-tok-7123-1109-openwrt',
-        ownerId: 'usr-owner-01',
-        routerName: 'OpenWrt Stage Hotspot',
-        vendor: 'openwrt',
-        vendorLabel: 'OpenWrt 23.x / Linux',
-        connectionMethod: 'Direct REST API',
-        scriptContent: `opkg update && opkg install nodogsplash\nuci set nodogsplash.@nodogsplash[0].gatewayname="BRISK Smart WiFi"\nuci set nodogsplash.@nodogsplash[0].redirecturl="https://wifi.brisk.co.ke/portal"\nuci commit nodogsplash\n/etc/init.d/nodogsplash restart`,
-        rollbackContent: `/etc/init.d/nodogsplash stop\nopkg remove nodogsplash`,
-        status: 'AWAITING_INSTALLATION',
-        createdAt: new Date(Date.now() - 3600000 * 2).toISOString(),
-        expiresAt: '2099-12-31T23:59:59Z',
-      },
-    ];
+    // 28. Router Setup Scripts & Tokens
+    this.setupScripts = [];
 
-    // 29. Seed Manual Payments for captive portal
-    this.manualPayments = [
-      {
-        id: 'mpay-01',
-        paymentMethodId: 'pm-01',
-        methodLabel: 'M-Pesa Buy Goods Till 5414200',
-        methodType: 'MPESA_TILL',
-        accountOrTill: '5414200',
-        customerPhone: '0712883849',
-        transactionReference: 'QHG8829124',
-        amountKes: 80,
-        packageId: 'pkg-1d',
-        packageName: '1 Day Unlimited',
-        status: 'PENDING_REVIEW',
-        submittedAt: new Date(Date.now() - 600000).toISOString(),
-        notes: 'Paid at Kiambu market center till',
-      },
-    ];
+    // 29. Manual Payments for captive portal
+    this.manualPayments = [];
 
-    // 30. Seed Subscription Activation Codes (Admin Issued & Manual Activations)
-    this.subscriptionActivationCodes = [
-      {
-        id: 'code-num-01',
-        code: '849201',
-        planId: 'sub-plan-pro',
-        planName: 'Professional Plan (30 Days Extension)',
-        durationDays: 30,
-        priceKes: 2500,
-        targetOwnerId: 'usr-owner-01',
-        targetOwnerName: 'Raymond Kamau',
-        createdById: 'usr-admin-01',
-        createdByName: 'Super Admin',
-        createdAt: new Date().toISOString(),
-        status: 'UNUSED',
-        notes: '6-digit numeric activation code (+30 Days)',
-      },
-      {
-        id: 'code-num-02',
-        code: '541420',
-        planId: 'sub-plan-pro',
-        planName: 'Professional Plan (60 Days Extension)',
-        durationDays: 60,
-        priceKes: 4800,
-        targetOwnerId: 'usr-owner-01',
-        targetOwnerName: 'Raymond Kamau',
-        createdById: 'usr-admin-01',
-        createdByName: 'Super Admin',
-        createdAt: new Date().toISOString(),
-        status: 'UNUSED',
-        notes: '6-digit numeric activation code (+60 Days)',
-      },
-      {
-        id: 'code-num-03',
-        code: '928371',
-        planId: 'sub-plan-business',
-        planName: 'Business Plan (90 Days Extension)',
-        durationDays: 90,
-        priceKes: 7000,
-        createdById: 'usr-admin-01',
-        createdByName: 'Super Admin',
-        createdAt: new Date().toISOString(),
-        status: 'UNUSED',
-        notes: '6-digit numeric activation code (+90 Days)',
-      },
-      {
-        id: 'code-01',
-        code: 'BRISK-ACT-7X9K2P',
-        planId: 'sub-plan-pro',
-        planName: 'Professional Plan (30 Days · 10 Routers / 10,000 Users)',
-        durationDays: 30,
-        priceKes: 2500,
-        targetOwnerId: 'usr-owner-01',
-        targetOwnerName: 'Raymond Kamau',
-        createdById: 'usr-admin-01',
-        createdByName: 'Super Admin',
-        createdAt: new Date().toISOString(),
-        status: 'UNUSED',
-        notes: 'Official activation code dispatched by Admin for M-Pesa Ref SKL920148M',
-      },
-      {
-        id: 'code-02',
-        code: 'BRISK-ACT-PROMO30',
-        planId: 'sub-plan-standard',
-        planName: 'Standard Plan (30 Days · 5 Routers / 3,000 Users)',
-        durationDays: 30,
-        priceKes: 1500,
-        createdById: 'usr-admin-01',
-        createdByName: 'Super Admin',
-        createdAt: new Date().toISOString(),
-        status: 'UNUSED',
-        notes: 'Master activation code usable by any router owner',
-      },
-    ];
+    // 30. Subscription Activation Codes
+    this.subscriptionActivationCodes = [];
 
-    // 31. Seed Manual Subscription Payment Requests from Router Owners
-    this.manualSubscriptionRequests = [
-      {
-        id: 'req-sub-01',
-        ownerId: 'usr-owner-01',
-        ownerName: 'Raymond Kamau',
-        businessName: 'Kiambu Smart WiFi Networks',
-        phone: '0722000111',
-        planId: 'sub-plan-pro',
-        planName: 'BRISK Pro Host (30 Days)',
-        amountKes: 1500,
-        transactionReference: 'QKR49X2PLA',
-        status: 'PENDING_APPROVAL',
-        submittedAt: new Date(Date.now() - 15 * 60 * 1000).toISOString(),
-        adminNotes: 'Transition code QKR49X2PLA submitted via PayBill 222111 Acct 5414200. Awaiting 1-click auto-activation.',
-      },
-      {
-        id: 'req-sub-02',
-        ownerId: 'usr-owner-02',
-        ownerName: 'David Mwangi',
-        businessName: 'Ruiru FastNet Hotspots',
-        phone: '0712883849',
-        planId: 'sub-plan-ent',
-        planName: 'ISP Enterprise (60 Days)',
-        amountKes: 2800,
-        transactionReference: 'TK88291X0Z',
-        status: 'PENDING_APPROVAL',
-        submittedAt: new Date(Date.now() - 45 * 60 * 1000).toISOString(),
-        adminNotes: 'M-Pesa payment received for 2-month renewal. Awaiting admin approval.',
-      },
-      {
-        id: 'req-sub-03',
-        ownerId: 'usr-owner-03',
-        ownerName: 'Grace Wanjiku',
-        businessName: 'Thika Metro Connect',
-        phone: '0799123456',
-        planId: 'sub-plan-pro',
-        planName: 'BRISK Pro Host (30 Days)',
-        amountKes: 1500,
-        transactionReference: 'SKL920148M',
-        status: 'APPROVED',
-        submittedAt: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
-        approvedAt: new Date(Date.now() - 23 * 60 * 60 * 1000).toISOString(),
-        adminNotes: 'Approved by Super Admin. Automatically activated.',
-      },
-    ];
+    // 31. Manual Subscription Payment Requests from Router Owners
+    this.manualSubscriptionRequests = [];
   }
 }
 
@@ -2600,15 +1701,35 @@ app.post('/api/mpesa/verify', async (req, res) => {
     });
   }
 
-  // If Router Owner 30-Day Subscription: activate router owner account
+  // If Router Owner 30-Day Subscription: activate router owner account & award 35% referral commission
   if (type === 'ROUTER_OWNER_SUBSCRIPTION') {
     const ownerProf = db.routerOwnerProfiles.get(targetUser.id);
+    const now = new Date();
     if (ownerProf) {
-      const now = new Date();
       const expiresAt = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
       ownerProf.subscriptionStatus = 'ACTIVE';
       ownerProf.subscriptionExpiresAt = expiresAt.toISOString();
     }
+    // Award 35% Referral Commission to Referrer
+    const commissionAmt = Math.round(Number(amount) * 0.35);
+    const referrer = db.customerProfiles.get('usr-cust-01');
+    if (referrer) {
+      referrer.availableCommission = (referrer.availableCommission || 0) + commissionAmt;
+      referrer.commissionEarned = (referrer.commissionEarned || 0) + commissionAmt;
+      referrer.totalReferrals = (referrer.totalReferrals || 0) + 1;
+    }
+    db.commissions.unshift({
+      id: `comm-${Date.now()}`,
+      referrerId: 'usr-cust-01',
+      referredUserId: targetUser.id,
+      referredUserName: targetUser.name,
+      purchasePackage: `Router Owner Subscription (${packageId || '30 Days'})`,
+      purchaseAmountKes: Number(amount),
+      commissionKes: commissionAmt,
+      ratePercent: 35,
+      createdAt: now.toISOString(),
+      status: 'EARNED',
+    });
   }
 
   const isPlatformSub = type === 'ROUTER_OWNER_SUBSCRIPTION';
