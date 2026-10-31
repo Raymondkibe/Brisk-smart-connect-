@@ -61,52 +61,7 @@ export const AdminSubscriptionCodesTab: React.FC<AdminSubscriptionCodesTabProps>
       }
     } catch (err: any) {
       console.warn('Could not fetch subscription requests:', err);
-      // Fallback seed demo requests
-      setManualRequests([
-        {
-          id: 'req-sub-01',
-          ownerId: 'usr-owner-01',
-          ownerName: 'Raymond Kamau',
-          businessName: 'Kiambu Smart WiFi Networks',
-          phone: '0722000111',
-          planId: 'sub-plan-pro',
-          planName: 'BRISK Pro Host (30 Days)',
-          amountKes: 1500,
-          transactionReference: 'QKR49X2PLA',
-          status: 'PENDING_APPROVAL',
-          submittedAt: new Date(Date.now() - 15 * 60 * 1000).toISOString(),
-          adminNotes: 'Transition code QKR49X2PLA submitted via PayBill 222111 Acct 5414200. Awaiting 1-click auto-activation.',
-        },
-        {
-          id: 'req-sub-02',
-          ownerId: 'usr-owner-02',
-          ownerName: 'David Mwangi',
-          businessName: 'Ruiru FastNet Hotspots',
-          phone: '0712883849',
-          planId: 'sub-plan-ent',
-          planName: 'ISP Enterprise (60 Days)',
-          amountKes: 2800,
-          transactionReference: 'TK88291X0Z',
-          status: 'PENDING_APPROVAL',
-          submittedAt: new Date(Date.now() - 45 * 60 * 1000).toISOString(),
-          adminNotes: 'M-Pesa payment received for 2-month renewal. Awaiting admin approval.',
-        },
-        {
-          id: 'req-sub-03',
-          ownerId: 'usr-owner-03',
-          ownerName: 'Grace Wanjiku',
-          businessName: 'Thika Metro Connect',
-          phone: '0799123456',
-          planId: 'sub-plan-pro',
-          planName: 'BRISK Pro Host (30 Days)',
-          amountKes: 1500,
-          transactionReference: 'SKL920148M',
-          status: 'APPROVED',
-          submittedAt: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
-          approvedAt: new Date(Date.now() - 23 * 60 * 60 * 1000).toISOString(),
-          adminNotes: 'Approved by Super Admin. Automatically activated.',
-        },
-      ]);
+      setManualRequests([]);
     } finally {
       setLoading(false);
     }

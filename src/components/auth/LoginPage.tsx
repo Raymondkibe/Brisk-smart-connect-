@@ -21,6 +21,7 @@ import {
   Check,
 } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth.ts';
+import { api } from '../../services/api.ts';
 import type { User } from '../../types/index.ts';
 
 interface LoginPageProps {
@@ -42,20 +43,20 @@ export const LoginPage: React.FC<LoginPageProps> = ({
   const [activeTab, setActiveTab] = useState<'login' | 'register'>(initialTab);
 
   // Sign In states
-  const [loginUser, setLoginUser] = useState<string>('0712883849');
-  const [loginPass, setLoginPass] = useState<string>('BriskPass123!');
+  const [loginUser, setLoginUser] = useState<string>('');
+  const [loginPass, setLoginPass] = useState<string>('');
   const [showLoginPass, setShowLoginPass] = useState<boolean>(false);
   const [rememberMe, setRememberMe] = useState<boolean>(true);
 
   // Register states
-  const [firstName, setFirstName] = useState<string>('John');
-  const [lastName, setLastName] = useState<string>('Kamau');
-  const [regPhone, setRegPhone] = useState<string>('0712883849');
+  const [firstName, setFirstName] = useState<string>('');
+  const [lastName, setLastName] = useState<string>('');
+  const [regPhone, setRegPhone] = useState<string>('');
   const [regEmail, setRegEmail] = useState<string>('');
-  const [regPass, setRegPass] = useState<string>('BriskPass123!');
+  const [regPass, setRegPass] = useState<string>('');
   const [showRegPass, setShowRegPass] = useState<boolean>(false);
   const [referralCode, setReferralCode] = useState<string>('');
-  const [regRole, setRegRole] = useState<'customer' | 'router_owner'>('router_owner');
+  const [regRole, setRegRole] = useState<'customer' | 'router_owner' | 'super_admin'>('router_owner');
   const [agreeTerms, setAgreeTerms] = useState<boolean>(true);
 
   // UI status
@@ -121,26 +122,9 @@ export const LoginPage: React.FC<LoginPageProps> = ({
         }
       }
 
-      // Determine user persona
-      const isOwner =
-        u.includes('owner') ||
-        u === '0722000111' ||
-        u === '0712883849';
-      const isAdmin = u.includes('admin') || u === '0799887766';
-
-      const resolvedUser: User = {
-        id: isAdmin ? 'usr-admin-01' : isOwner ? 'usr-owner-01' : 'usr-cust-01',
-        name: isAdmin
-          ? 'Super Admin (Platform)'
-          : isOwner
-          ? 'Raymond Kamau (Router Owner)'
-          : 'John Wanjiku (Subscriber)',
-        email: emailToUse,
-        phone: u.startsWith('07') || u.startsWith('01') ? u : '0712883849',
-        role: isAdmin ? 'SUPER_ADMIN' : isOwner ? 'ROUTER_OWNER' : 'CUSTOMER',
-        createdAt: new Date().toISOString(),
-        status: 'ACTIVE',
-      };
+      // Authenticate against real server-side account repository
+      const res = await api.login(u);
+      const resolvedUser: User = res.user;
 
       showToast('success', `Welcome back, ${resolvedUser.name.split(' ')[0]}! 👋`);
 
@@ -148,7 +132,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({
         onLoginSuccess(resolvedUser);
       }, 700);
     } catch (err: any) {
-      showToast('error', err.message || 'Login failed. Please check your credentials.');
+      showToast('error', err.message || 'Login failed. Please check your credentials or register a new account.');
     } finally {
       setLoading(false);
     }
@@ -163,7 +147,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({
     const pw = regPass;
 
     if (!fn || !ph || !pw) {
-      showToast('warning', 'First name, phone, and password are required');
+      showToast('warning', 'First name, phone number, and password are required');
       return;
     }
 
@@ -180,31 +164,33 @@ export const LoginPage: React.FC<LoginPageProps> = ({
     setLoading(true);
 
     try {
+      const fullName = `${fn} ${ln}`.trim();
+      const targetRole = regRole === 'router_owner' ? 'ROUTER_OWNER' : regRole === 'super_admin' ? 'SUPER_ADMIN' : 'CUSTOMER';
       const emailToUse = em || `${ph.replace(/[^0-9]/g, '')}@briskconnect.co.ke`;
 
       if (isConfigured) {
         try {
           await signUp(emailToUse, pw, {
-            name: `${fn} ${ln}`.trim(),
+            name: fullName,
             phone: ph,
-            role: regRole === 'router_owner' ? 'ROUTER_OWNER' : 'CUSTOMER',
+            role: targetRole,
           });
         } catch (authErr: any) {
           console.warn('[Register] Remote auth note:', authErr.message);
         }
       }
 
-      const newUser: User = {
-        id: regRole === 'router_owner' ? `usr-owner-${Date.now()}` : `usr-cust-${Date.now()}`,
-        name: `${fn} ${ln}`.trim(),
+      // Register real account in database
+      const res = await api.register({
+        name: fullName,
         email: emailToUse,
         phone: ph,
-        role: regRole === 'router_owner' ? 'ROUTER_OWNER' : 'CUSTOMER',
-        createdAt: new Date().toISOString(),
-        status: 'ACTIVE',
-      };
+        role: targetRole,
+      });
 
-      showToast('success', 'Account created! Free WiFi + hosting activated! 🚀');
+      const newUser: User = res.user;
+
+      showToast('success', 'Account created successfully! Welcome to BRISK Smart Connect! 🚀');
 
       setTimeout(() => {
         onLoginSuccess(newUser);

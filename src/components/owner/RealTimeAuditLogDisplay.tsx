@@ -127,9 +127,9 @@ export const RealTimeAuditLogDisplay: React.FC<RealTimeAuditLogDisplayProps> = (
           title: chosen.title,
           description: chosen.description,
           severity: chosen.severity,
-          routerId: 'rtr-01',
-          routerName: 'Kiambu Main Gateway',
-          actor: 'Raymond Kamau (Router Owner)',
+          routerId: 'active-gateway',
+          routerName: 'Host Gateway Router',
+          actor: 'Network Administrator',
           targetIp: '192.168.88.1',
           metadata: chosen.metadata,
         };
@@ -138,9 +138,9 @@ export const RealTimeAuditLogDisplay: React.FC<RealTimeAuditLogDisplayProps> = (
           {
             eventType: 'GUEST_DEVICE_ASSOCIATED',
             title: 'New Guest Associated to AP',
-            description: `Device associated on AP 01 Kiambu Market (Signal -${Math.floor(50 + Math.random() * 25)} dBm, WiFi 6).`,
+            description: `Device associated on wireless access point (Signal -${Math.floor(50 + Math.random() * 25)} dBm, WiFi 6).`,
             severity: 'INFO' as const,
-            actor: 'AP 01 Kiambu Market',
+            actor: 'Wireless Access Point',
           },
           {
             eventType: 'GUEST_SESSION_AUTHORIZED',

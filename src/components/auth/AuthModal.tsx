@@ -108,13 +108,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
         }
       }
 
-      const roleParam = loginUser.toLowerCase().includes('admin')
-        ? 'SUPER_ADMIN'
-        : loginUser.toLowerCase().includes('owner') || loginUser.includes('0722')
-        ? 'ROUTER_OWNER'
-        : 'CUSTOMER';
-
-      const data = await api.login(emailToUse, roleParam);
+      const data = await api.login(loginUser.trim());
       onAuthSuccess(data);
       onClose();
     } catch (err: any) {

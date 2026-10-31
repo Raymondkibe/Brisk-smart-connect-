@@ -20,6 +20,7 @@ import { AuthModal } from './components/auth/AuthModal.tsx';
 import { HostModal } from './components/common/HostModal.tsx';
 import { DashboardSkeleton } from './components/common/DashboardSkeleton.tsx';
 import { AuthProvider } from './context/AuthContext.tsx';
+import { Wifi, Radio, ShieldCheck } from 'lucide-react';
 import { api, type AppState } from './services/api.ts';
 import type {
   User,
@@ -140,6 +141,38 @@ const getInitialOwnerTab = (): OwnerPage => {
   return 'DASHBOARD';
 };
 
+const AuthGateCard: React.FC<{
+  title: string;
+  description: string;
+  onLogin: () => void;
+  onRegister: () => void;
+  icon: React.ReactNode;
+}> = ({ title, description, onLogin, onRegister, icon }) => (
+  <div className="max-w-md mx-auto my-16 px-4">
+    <div className="p-8 bg-slate-900 border border-slate-800 rounded-3xl text-center space-y-4 shadow-2xl">
+      <div className="w-14 h-14 mx-auto rounded-2xl bg-sky-500/10 border border-sky-500/20 text-sky-400 flex items-center justify-center">
+        {icon}
+      </div>
+      <h2 className="text-xl font-bold text-white">{title}</h2>
+      <p className="text-xs text-slate-400 leading-relaxed">{description}</p>
+      <div className="pt-2 flex flex-col sm:flex-row gap-2.5">
+        <button
+          onClick={onLogin}
+          className="flex-1 py-2.5 px-4 bg-sky-600 hover:bg-sky-500 text-white text-xs font-bold rounded-xl transition-all cursor-pointer"
+        >
+          Sign In
+        </button>
+        <button
+          onClick={onRegister}
+          className="flex-1 py-2.5 px-4 bg-amber-400 hover:bg-amber-300 text-slate-950 text-xs font-black rounded-xl transition-all cursor-pointer"
+        >
+          Create Account
+        </button>
+      </div>
+    </div>
+  </div>
+);
+
 function MainApp() {
   const [appState, setAppState] = useState<AppState | null>(null);
   const [loading, setLoading] = useState(true);
@@ -189,20 +222,11 @@ function MainApp() {
       const data = await api.fetchState();
       setAppState(data);
 
-      // Set initial user if none selected
-      if (!currentUser && data.users.length > 0) {
-        // Default preview user: Customer or Router Owner
-        const defaultUser = data.users.find((u) => u.role === 'CUSTOMER') || data.users[1];
-        setCurrentUser(defaultUser);
+      // Refresh profiles if a user is currently logged in
+      if (currentUser) {
+        const freshUser = data.users.find((u) => u.id === currentUser.id);
+        if (freshUser) setCurrentUser(freshUser);
 
-        // Find customer and owner profiles
-        const cpEntry = data.customerProfiles.find(([uid]) => uid === defaultUser.id);
-        if (cpEntry) setCustomerProfile(cpEntry[1]);
-
-        const opEntry = data.routerOwnerProfiles.find(([uid]) => uid === defaultUser.id);
-        if (opEntry) setOwnerProfile(opEntry[1]);
-      } else if (currentUser) {
-        // Refresh profiles for current user
         const cpEntry = data.customerProfiles.find(([uid]) => uid === currentUser.id);
         if (cpEntry) setCustomerProfile(cpEntry[1]);
 
@@ -210,7 +234,7 @@ function MainApp() {
         if (opEntry) setOwnerProfile(opEntry[1]);
       }
     } catch (err) {
-      console.warn('Backend sync in progress, running with local store:', err);
+      console.warn('Backend sync note:', err);
     } finally {
       setLoading(false);
     }
@@ -220,7 +244,7 @@ function MainApp() {
     loadState();
   }, []);
 
-  // When switching views, if the current user role doesn't match the view, adjust active persona smoothly
+  // When switching views, update URL and state cleanly
   const handleViewChange = (view: AppView, ownerTab?: OwnerPage) => {
     setCurrentView(view);
     if (ownerTab) {
@@ -247,27 +271,6 @@ function MainApp() {
       if (window.location.pathname !== targetPath) {
         window.history.pushState({ view, ownerTab }, '', targetPath);
       }
-    }
-
-    if (!appState) return;
-
-    if (view === 'CUSTOMER') {
-      const customer = appState.users.find((u) => u.role === 'CUSTOMER');
-      if (customer) {
-        setCurrentUser(customer);
-        const cp = appState.customerProfiles.find(([uid]) => uid === customer.id);
-        if (cp) setCustomerProfile(cp[1]);
-      }
-    } else if (view === 'OWNER') {
-      const owner = appState.users.find((u) => u.role === 'ROUTER_OWNER');
-      if (owner) {
-        setCurrentUser(owner);
-        const rop = appState.routerOwnerProfiles.find(([uid]) => uid === owner.id);
-        if (rop) setOwnerProfile(rop[1]);
-      }
-    } else if (view === 'ADMIN') {
-      const admin = appState.users.find((u) => u.role === 'SUPER_ADMIN');
-      if (admin) setCurrentUser(admin);
     }
   };
 
@@ -480,63 +483,93 @@ function MainApp() {
           />
         )}
 
-        {currentView === 'CUSTOMER' && currentUser && (
-          <CustomerDashboard
-            currentUser={currentUser}
-            profile={customerProfile}
-            packages={packages}
-            sessions={sessions}
-            transactions={transactions.filter((t) => t.userId === currentUser.id || t.type === 'CUSTOMER_WIFI')}
-            commissions={commissions}
-            withdrawals={withdrawals.filter((w) => w.userId === currentUser.id)}
-            tickets={tickets}
-            installations={installations}
-            onBuyPackage={handleSelectPackage}
-            onOpenVoucher={() => setVoucherModalOpen(true)}
-            onViewReceipt={handleViewReceipt}
-            onRefreshState={loadState}
-          />
+        {currentView === 'CUSTOMER' && (
+          currentUser ? (
+            <CustomerDashboard
+              currentUser={currentUser}
+              profile={customerProfile}
+              packages={packages}
+              sessions={sessions}
+              transactions={transactions.filter((t) => t.userId === currentUser.id || t.type === 'CUSTOMER_WIFI')}
+              commissions={commissions}
+              withdrawals={withdrawals.filter((w) => w.userId === currentUser.id)}
+              tickets={tickets}
+              installations={installations}
+              onBuyPackage={handleSelectPackage}
+              onOpenVoucher={() => setVoucherModalOpen(true)}
+              onViewReceipt={handleViewReceipt}
+              onRefreshState={loadState}
+            />
+          ) : (
+            <AuthGateCard
+              title="Customer WiFi Portal"
+              description="Sign in or register your customer account to view your active WiFi session, purchased passes, speed test tools, and referral earnings."
+              icon={<Wifi className="w-7 h-7" />}
+              onLogin={() => handleOpenAuth('LOGIN')}
+              onRegister={() => handleOpenAuth('REGISTER')}
+            />
+          )
         )}
 
-        {currentView === 'OWNER' && currentUser && (
-          <OwnerDashboard
-            currentUser={currentUser}
-            profile={ownerProfile}
-            subscriptionPlans={subscriptionPlans}
-            routers={routers}
-            accessPoints={accessPoints}
-            sessions={sessions}
-            pppoeUsers={pppoeUsers}
-            vouchers={vouchers}
-            incidents={incidents}
-            businessProfile={businessProfile}
-            packages={packages}
-            transactions={transactions}
-            withdrawals={withdrawals}
-            onActivateSubscription={handleSelectPlan}
-            onRefreshState={loadState}
-            onGoToHotspotPortal={() => setCurrentView('HOTSPOT_PORTAL')}
-            initialTab={ownerInitialTab}
-          />
+        {currentView === 'OWNER' && (
+          currentUser ? (
+            <OwnerDashboard
+              currentUser={currentUser}
+              profile={ownerProfile}
+              subscriptionPlans={subscriptionPlans}
+              routers={routers}
+              accessPoints={accessPoints}
+              sessions={sessions}
+              pppoeUsers={pppoeUsers}
+              vouchers={vouchers}
+              incidents={incidents}
+              businessProfile={businessProfile}
+              packages={packages}
+              transactions={transactions}
+              withdrawals={withdrawals}
+              onActivateSubscription={handleSelectPlan}
+              onRefreshState={loadState}
+              onGoToHotspotPortal={() => setCurrentView('HOTSPOT_PORTAL')}
+              initialTab={ownerInitialTab}
+            />
+          ) : (
+            <AuthGateCard
+              title="Router Manager & ISP Hub"
+              description="Sign in or register your router owner account to manage MikroTik gateways, configure captive portal themes, generate vouchers, and collect M-Pesa revenue."
+              icon={<Radio className="w-7 h-7" />}
+              onLogin={() => handleOpenAuth('LOGIN')}
+              onRegister={() => handleOpenAuth('REGISTER')}
+            />
+          )
         )}
 
-        {currentView === 'ADMIN' && currentUser && (
-          <AdminDashboard
-            currentUser={currentUser}
-            users={appState?.users || []}
-            routers={routers}
-            accessPoints={accessPoints}
-            packages={packages}
-            subscriptionPlans={subscriptionPlans}
-            transactions={transactions}
-            vouchers={vouchers}
-            withdrawals={withdrawals}
-            installations={installations}
-            incidents={incidents}
-            auditLogs={auditLogs}
-            hostApplications={hostApplications}
-            onRefreshState={loadState}
-          />
+        {currentView === 'ADMIN' && (
+          currentUser && currentUser.role === 'SUPER_ADMIN' ? (
+            <AdminDashboard
+              currentUser={currentUser}
+              users={appState?.users || []}
+              routers={routers}
+              accessPoints={accessPoints}
+              packages={packages}
+              subscriptionPlans={subscriptionPlans}
+              transactions={transactions}
+              vouchers={vouchers}
+              withdrawals={withdrawals}
+              installations={installations}
+              incidents={incidents}
+              auditLogs={auditLogs}
+              hostApplications={hostApplications}
+              onRefreshState={loadState}
+            />
+          ) : (
+            <AuthGateCard
+              title="Admin Control Center"
+              description="Platform super administrative console. Sign in with administrative credentials to monitor global system health, manage users, and approve transition codes."
+              icon={<ShieldCheck className="w-7 h-7" />}
+              onLogin={() => handleOpenAuth('LOGIN')}
+              onRegister={() => handleOpenAuth('REGISTER')}
+            />
+          )
         )}
       </main>
 
@@ -545,8 +578,8 @@ function MainApp() {
         isOpen={paymentModalOpen}
         onClose={() => setPaymentModalOpen(false)}
         targetItem={paymentTarget}
-        userId={currentUser?.id || 'usr-cust-01'}
-        defaultPhone={currentUser?.phone || '0799123456'}
+        userId={currentUser?.id || 'guest'}
+        defaultPhone={currentUser?.phone || ''}
         onPaymentSuccess={handlePaymentSuccess}
         onViewReceipt={handleViewReceipt}
       />
@@ -560,7 +593,7 @@ function MainApp() {
       <VoucherModal
         isOpen={voucherModalOpen}
         onClose={() => setVoucherModalOpen(false)}
-        userId={currentUser?.id || 'usr-cust-01'}
+        userId={currentUser?.id || 'guest'}
         onVoucherSuccess={() => loadState()}
       />
 

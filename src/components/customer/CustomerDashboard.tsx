@@ -28,7 +28,10 @@ import {
   Server,
   Radio,
   Zap,
+  QrCode,
+  Camera,
 } from 'lucide-react';
+
 import type {
   User,
   CustomerProfile,
@@ -171,7 +174,7 @@ export const CustomerDashboard: React.FC<CustomerDashboardProps> = ({
       const res = await api.submitCustomerTransactionCode({
         userId: currentUser.id,
         userName: currentUser.name,
-        phone: currentUser.phone || '0712345678',
+        phone: currentUser.phone || '',
         packageId: selectedPkg?.id,
         packageName: selectedPkg?.name,
         amountKes: selectedPkg?.priceKes || 80,
@@ -271,7 +274,7 @@ export const CustomerDashboard: React.FC<CustomerDashboardProps> = ({
   // Copy referral feedback
   const [copiedLink, setCopiedLink] = useState(false);
 
-  const referralCode = profile?.referralCode || 'RAYMOND123';
+  const referralCode = profile?.referralCode || (currentUser.id ? currentUser.id.replace('usr-', '').slice(-6).toUpperCase() : 'BRISK');
   const referralLink = `https://wifi.brisk.co.ke/join?ref=${referralCode}`;
 
   const handleCopyLink = () => {
@@ -383,12 +386,14 @@ export const CustomerDashboard: React.FC<CustomerDashboardProps> = ({
             </button>
             <button
               onClick={onOpenVoucher}
-              className="px-4 py-2.5 bg-[#131f38] hover:bg-[#1a2b4d] text-cyan-300 text-xs font-semibold rounded-xl border border-slate-700 transition-colors flex items-center gap-1.5 cursor-pointer"
+              className="px-4 py-2.5 bg-gradient-to-r from-amber-400/20 via-amber-400/10 to-amber-400/20 hover:from-amber-400/30 hover:to-amber-400/25 text-amber-300 text-xs font-bold rounded-xl border border-amber-400/40 transition-all flex items-center gap-1.5 cursor-pointer shadow-sm"
+              title="Scan voucher with camera or enter PIN code"
             >
-              <Ticket className="w-3.5 h-3.5 text-cyan-400" />
-              <span>ENTER VOUCHER</span>
+              <Camera className="w-3.5 h-3.5 text-amber-400" />
+              <span>SCAN / ENTER VOUCHER</span>
             </button>
           </div>
+
         </div>
 
         {/* Tab Navigation */}
@@ -641,32 +646,40 @@ export const CustomerDashboard: React.FC<CustomerDashboardProps> = ({
                   <span className="text-xs text-slate-400">1 of 3 Devices Active</span>
                 </div>
 
-                <div className="p-4 bg-slate-950 rounded-xl border border-slate-800/80 space-y-2.5 text-xs">
-                  <div className="flex justify-between">
-                    <span className="text-slate-400">Device Name:</span>
-                    <span className="font-semibold text-white">Chrome on Linux (Current)</span>
+                {profile?.currentPackage ? (
+                  <div className="p-4 bg-slate-950 rounded-xl border border-slate-800/80 space-y-2.5 text-xs">
+                    <div className="flex justify-between">
+                      <span className="text-slate-400">Device Name:</span>
+                      <span className="font-semibold text-white">Connected Web Client</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-slate-400">Assigned IP Address:</span>
+                      <span className="font-mono text-sky-400">192.168.88.x (Dynamic DHCP)</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-slate-400">Allocated Bandwidth:</span>
+                      <span className="font-mono text-emerald-400 font-semibold">{profile.currentPackage.speed}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-slate-400">Current Plan:</span>
+                      <span className="text-white">{profile.currentPackage.packageName}</span>
+                    </div>
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-slate-400">Assigned IP Address:</span>
-                    <span className="font-mono text-sky-400">192.168.88.142</span>
+                ) : (
+                  <div className="p-6 bg-slate-950 rounded-xl border border-slate-800/80 text-center space-y-2 text-xs">
+                    <div className="text-slate-400">No active internet package subscribed.</div>
+                    <button
+                      onClick={() => setActiveTab('PACKAGES')}
+                      className="px-3.5 py-1.5 bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold text-xs rounded-lg transition-colors cursor-pointer"
+                    >
+                      Buy WiFi Package
+                    </button>
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-slate-400">Device MAC:</span>
-                    <span className="font-mono text-slate-300">DC:A6:32:89:BC:11</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-slate-400">Hotspot Access Point:</span>
-                    <span className="text-white">AP 01 Kiambu Market</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-slate-400">Data Transferred:</span>
-                    <span className="font-mono text-emerald-400 font-semibold">1,240 MB</span>
-                  </div>
-                </div>
+                )}
 
                 <button
                   onClick={() => setActiveTab('DEVICES')}
-                  className="w-full py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold rounded-xl transition-colors"
+                  className="w-full py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold rounded-xl transition-colors cursor-pointer"
                 >
                   Manage Sessions & Devices
                 </button>
@@ -681,37 +694,43 @@ export const CustomerDashboard: React.FC<CustomerDashboardProps> = ({
                   </div>
                   <button
                     onClick={() => setActiveTab('TRANSACTIONS')}
-                    className="text-xs text-sky-400 hover:text-sky-300"
+                    className="text-xs text-sky-400 hover:text-sky-300 cursor-pointer"
                   >
                     View All
                   </button>
                 </div>
 
                 <div className="space-y-2">
-                  {transactions.slice(0, 3).map((tx) => (
-                    <div
-                      key={tx.id}
-                      className="p-3 bg-slate-950 rounded-xl border border-slate-800/80 flex items-center justify-between text-xs"
-                    >
-                      <div>
-                        <div className="font-bold text-white">{tx.packageName}</div>
-                        <div className="text-[11px] text-slate-400 font-mono">
-                          {tx.receiptNumber} · {tx.paymentMethod}
-                        </div>
-                      </div>
-                      <div className="text-right">
-                        <div className="font-extrabold text-amber-400 font-mono">
-                          KES {tx.amountKes.toLocaleString()}
-                        </div>
-                        <button
-                          onClick={() => onViewReceipt(tx)}
-                          className="text-[11px] text-sky-400 hover:underline"
-                        >
-                          View Receipt
-                        </button>
-                      </div>
+                  {transactions.length === 0 ? (
+                    <div className="p-6 bg-slate-950 rounded-xl border border-slate-800/80 text-center text-xs text-slate-500">
+                      No purchase transactions yet. Purchased WiFi data or vouchers will appear here.
                     </div>
-                  ))}
+                  ) : (
+                    transactions.slice(0, 3).map((tx) => (
+                      <div
+                        key={tx.id}
+                        className="p-3 bg-slate-950 rounded-xl border border-slate-800/80 flex items-center justify-between text-xs"
+                      >
+                        <div>
+                          <div className="font-bold text-white">{tx.packageName}</div>
+                          <div className="text-[11px] text-slate-400 font-mono">
+                            {tx.receiptNumber} · {tx.paymentMethod}
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <div className="font-extrabold text-amber-400 font-mono">
+                            KES {tx.amountKes.toLocaleString()}
+                          </div>
+                          <button
+                            onClick={() => onViewReceipt(tx)}
+                            className="text-[11px] text-sky-400 hover:underline cursor-pointer"
+                          >
+                            View Receipt
+                          </button>
+                        </div>
+                      </div>
+                    ))
+                  )}
                 </div>
               </div>
             </div>
@@ -1284,8 +1303,12 @@ export const CustomerDashboard: React.FC<CustomerDashboardProps> = ({
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               <div className="p-5 bg-slate-900 border border-slate-800 rounded-2xl">
                 <div className="text-xs text-slate-400 font-medium">Total Friends Referred</div>
-                <div className="text-2xl font-black text-white mt-1">23</div>
-                <div className="text-[11px] text-slate-400 mt-1">17 made eligible purchases</div>
+                <div className="text-2xl font-black text-white mt-1">
+                  {profile?.totalReferrals ?? commissions.length}
+                </div>
+                <div className="text-[11px] text-slate-400 mt-1">
+                  {commissions.filter((c) => c.status === 'PAID' || c.status === 'EARNED').length} made eligible purchases
+                </div>
               </div>
               <div className="p-5 bg-slate-900 border border-slate-800 rounded-2xl">
                 <div className="text-xs text-slate-400 font-medium">Commission Rate</div>
@@ -1294,13 +1317,15 @@ export const CustomerDashboard: React.FC<CustomerDashboardProps> = ({
               </div>
               <div className="p-5 bg-slate-900 border border-slate-800 rounded-2xl">
                 <div className="text-xs text-slate-400 font-medium">Total Commission Earned</div>
-                <div className="text-2xl font-black text-sky-400 mt-1 font-mono">KES 1,850</div>
+                <div className="text-2xl font-black text-sky-400 mt-1 font-mono">
+                  KES {(profile?.commissionEarned ?? commissions.reduce((s, c) => s + (c.commissionKes || 0), 0)).toLocaleString()}
+                </div>
                 <div className="text-[11px] text-slate-400 mt-1">Lifetime rewards</div>
               </div>
               <div className="p-5 bg-slate-900 border border-slate-800 rounded-2xl">
                 <div className="text-xs text-slate-400 font-medium">Available to Withdraw</div>
                 <div className="text-2xl font-black text-emerald-400 mt-1 font-mono">
-                  KES {(profile?.availableCommission ?? 1200).toLocaleString()}
+                  KES {(profile?.availableCommission ?? 0).toLocaleString()}
                 </div>
                 <div className="text-[11px] text-slate-400 mt-1">Min withdrawal: KES 100</div>
               </div>
@@ -1321,7 +1346,7 @@ export const CustomerDashboard: React.FC<CustomerDashboardProps> = ({
                 </div>
                 <button
                   onClick={handleCopyLink}
-                  className="px-5 py-3 bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold text-xs rounded-xl shadow-md transition-colors flex items-center justify-center gap-1.5 whitespace-nowrap"
+                  className="px-5 py-3 bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold text-xs rounded-xl shadow-md transition-colors flex items-center justify-center gap-1.5 whitespace-nowrap cursor-pointer"
                 >
                   <Copy className="w-4 h-4" />
                   <span>{copiedLink ? 'COPIED!' : 'COPY LINK'}</span>
@@ -1338,7 +1363,7 @@ export const CustomerDashboard: React.FC<CustomerDashboardProps> = ({
                   <input
                     type="number"
                     min="100"
-                    max={profile?.availableCommission ?? 1200}
+                    max={profile?.availableCommission ?? 0}
                     required
                     value={withdrawAmount}
                     onChange={(e) => setWithdrawAmount(e.target.value)}
@@ -1360,8 +1385,8 @@ export const CustomerDashboard: React.FC<CustomerDashboardProps> = ({
                 <div className="flex items-end">
                   <button
                     type="submit"
-                    disabled={withdrawLoading || !withdrawAmount}
-                    className="w-full py-2.5 bg-emerald-500 hover:bg-emerald-400 disabled:opacity-50 text-slate-950 text-xs font-bold rounded-xl shadow-md transition-colors"
+                    disabled={withdrawLoading || !withdrawAmount || Number(withdrawAmount) <= 0}
+                    className="w-full py-2.5 bg-emerald-500 hover:bg-emerald-400 disabled:opacity-50 text-slate-950 text-xs font-bold rounded-xl shadow-md transition-colors cursor-pointer"
                   >
                     {withdrawLoading ? 'Submitting...' : 'REQUEST CASHOUT'}
                   </button>
@@ -1401,6 +1426,63 @@ export const CustomerDashboard: React.FC<CustomerDashboardProps> = ({
                   <span>{withdrawError}</span>
                 </div>
               )}
+            </div>
+
+            {/* Referral Commission History Table */}
+            <div className="p-6 bg-slate-900 border border-slate-800 rounded-2xl space-y-4">
+              <h3 className="text-sm font-bold text-white flex items-center gap-2">
+                <Users className="w-4 h-4 text-sky-400" />
+                <span>Referral Commissions & Friend Activity Log</span>
+              </h3>
+
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-xs text-slate-300">
+                  <thead className="bg-slate-950 text-slate-400 font-semibold border-b border-slate-800">
+                    <tr>
+                      <th className="p-3">Referred User</th>
+                      <th className="p-3">Package Purchased</th>
+                      <th className="p-3">Package Amount</th>
+                      <th className="p-3">Your Commission (10%)</th>
+                      <th className="p-3">Date</th>
+                      <th className="p-3">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-800">
+                    {commissions && commissions.length > 0 ? (
+                      commissions.map((comm) => (
+                        <tr key={comm.id} className="hover:bg-slate-800/40">
+                          <td className="p-3 font-semibold text-white">{comm.referredUserName || 'Referred Friend'}</td>
+                          <td className="p-3 text-sky-300">{comm.packageName || 'WiFi Package'}</td>
+                          <td className="p-3 font-mono">KES {(comm.packagePriceKes || 0).toLocaleString()}</td>
+                          <td className="p-3 font-mono font-bold text-emerald-400">
+                            + KES {(comm.commissionKes || 0).toLocaleString()}
+                          </td>
+                          <td className="p-3 text-slate-400">
+                            {comm.createdAt ? new Date(comm.createdAt).toLocaleDateString('en-KE', { month: 'short', day: 'numeric', year: 'numeric' }) : 'Recently'}
+                          </td>
+                          <td className="p-3">
+                            <span
+                              className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${
+                                comm.status === 'PAID' || comm.status === 'EARNED'
+                                  ? 'bg-emerald-950/80 text-emerald-400 border border-emerald-800/50'
+                                  : 'bg-amber-950/80 text-amber-400 border border-amber-800/50'
+                              }`}
+                            >
+                              ● {comm.status}
+                            </span>
+                          </td>
+                        </tr>
+                      ))
+                    ) : (
+                      <tr>
+                        <td colSpan={6} className="p-6 text-center text-slate-500 italic">
+                          No referral commissions earned yet. Share your unique link above to invite friends and earn 10% cash on every purchase.
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
             </div>
           </div>
         )}

@@ -59,7 +59,7 @@ export const AddCustomPackageModal: React.FC<AddCustomPackageModalProps> = ({
   const [dataQuotaType, setDataQuotaType] = useState<'UNLIMITED' | 'CAPPED'>(initialPackage?.fairUsageGb ? 'CAPPED' : 'UNLIMITED');
   const [quotaGb, setQuotaGb] = useState<number>(initialPackage?.fairUsageGb || 10);
   const [description, setDescription] = useState(initialPackage?.description || 'High-speed reliable internet pass for streaming and browsing.');
-  const [category, setCategory] = useState<'HOURLY' | 'DAILY' | 'MULTI_DAY' | 'MONTHLY'>(initialPackage?.category || 'HOURLY');
+  const [category, setCategory] = useState<'HOURLY' | 'DAILY' | 'MULTI_DAY' | 'MONTHLY' | 'TV'>(initialPackage?.category || 'HOURLY');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -244,6 +244,7 @@ export const AddCustomPackageModal: React.FC<AddCustomPackageModalProps> = ({
                 <option value="DAILY">Daily</option>
                 <option value="MULTI_DAY">Multi-Day</option>
                 <option value="MONTHLY">Monthly</option>
+                <option value="TV">Smart TV & IPTV Pass</option>
               </select>
             </div>
           </div>

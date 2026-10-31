@@ -43,9 +43,13 @@ import {
   MessageCircle,
   PhoneCall,
   Info,
+  Camera,
 } from 'lucide-react';
 import type { WifiPackage, Transaction, Voucher, WifiSession, PortalManualPayment } from '../../types/index.ts';
 import { api } from '../../services/api.ts';
+import { QrCodeScannerModal } from '../common/QrCodeScannerModal.tsx';
+import type { ParsedQrResult } from '../../lib/qrParser.ts';
+
 
 interface CaptivePortalPageProps {
   packages: WifiPackage[];
@@ -92,15 +96,23 @@ export const CaptivePortalPage: React.FC<CaptivePortalPageProps> = ({
   const [manualMethods, setManualMethods] = useState<any[]>([]);
   const [selectedManualMethod, setSelectedManualMethod] = useState<any>(null);
   const [manualRefCode, setManualRefCode] = useState('');
-  const [manualPhone, setManualPhone] = useState('0712883849');
+  const [manualPhone, setManualPhone] = useState('');
   const [manualStatus, setManualStatus] = useState<'IDLE' | 'SUBMITTING' | 'SUBMITTED'>('IDLE');
   const [manualMessage, setManualMessage] = useState('');
   const [manualError, setManualError] = useState('');
 
+  // Determine current portal tenant ID from URL or default
+  const getPortalTenantId = () => {
+    if (typeof window === 'undefined') return 'default';
+    const params = new URLSearchParams(window.location.search);
+    return params.get('owner') || params.get('tenant') || 'default';
+  };
+
   // Load published portal & manual payment methods
   const loadPublishedPortal = async () => {
     try {
-      const res = await api.getPublicPortal('usr-owner-01');
+      const tenantId = getPortalTenantId();
+      const res = await api.getPublicPortal(tenantId);
       if (res && res.portal) {
         setPublishedPortal(res.portal);
         if (Array.isArray(res.portal.packages) && res.portal.packages.length > 0) {
@@ -118,7 +130,8 @@ export const CaptivePortalPage: React.FC<CaptivePortalPageProps> = ({
 
   const loadManualMethods = async () => {
     try {
-      const res = await api.getPortalManualPaymentMethods('usr-owner-01');
+      const tenantId = getPortalTenantId();
+      const res = await api.getPortalManualPaymentMethods(tenantId);
       if (res && res.methods) {
         setManualMethods(res.methods);
         if (res.methods.length > 0) {
@@ -169,7 +182,7 @@ export const CaptivePortalPage: React.FC<CaptivePortalPageProps> = ({
     currentPackages[0]?.id || 'pkg-1d'
   );
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
-  const [phone, setPhone] = useState('0712883849');
+  const [phone, setPhone] = useState('');
   const [stkStatus, setStkStatus] = useState<'IDLE' | 'PROMPTING' | 'VERIFYING' | 'SUCCESS'>('IDLE');
   const [stkErrorMessage, setStkErrorMessage] = useState('');
   const [lastTx, setLastTx] = useState<Transaction | null>(null);
@@ -179,11 +192,13 @@ export const CaptivePortalPage: React.FC<CaptivePortalPageProps> = ({
   const [voucherLoading, setVoucherLoading] = useState(false);
   const [voucherError, setVoucherError] = useState('');
   const [voucherSuccess, setVoucherSuccess] = useState('');
+  const [isScannerOpen, setIsScannerOpen] = useState(false);
+
 
   // Account Flow State
   const [accountSubTab, setAccountSubTab] = useState<'LOGIN' | 'REGISTER' | 'STATUS'>('LOGIN');
-  const [accountUser, setAccountUser] = useState('0712883849');
-  const [accountPass, setAccountPass] = useState('Customer@2026');
+  const [accountUser, setAccountUser] = useState('');
+  const [accountPass, setAccountPass] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [accountLoading, setAccountLoading] = useState(false);
   const [accountError, setAccountError] = useState('');
@@ -343,9 +358,8 @@ export const CaptivePortalPage: React.FC<CaptivePortalPageProps> = ({
   };
 
   // 4. Voucher Redemption
-  const handleVoucherRedeem = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const cleanCode = voucherCode.trim().toUpperCase();
+  const executeVoucherRedeem = async (codeToRedeem: string) => {
+    const cleanCode = codeToRedeem.trim().toUpperCase();
     if (!cleanCode) {
       setVoucherError(lang === 'SW' ? 'Tafadhali weka nambari ya vocha yako.' : 'Please enter your voucher code.');
       return;
@@ -356,7 +370,7 @@ export const CaptivePortalPage: React.FC<CaptivePortalPageProps> = ({
     setVoucherSuccess('');
 
     try {
-      const res = await api.redeemVoucher(cleanCode, 'usr-cust-01');
+      const res = await api.redeemVoucher(cleanCode, loggedInCustomer?.id || 'guest-session');
       setVoucherSuccess(lang === 'SW' ? `Vocha Imethibitishwa! Kifurushi cha ${res.voucher.packageName} kimewezeshwa.` : `Voucher Verified! ${res.voucher.packageName} activated successfully.`);
       setIsConnected(true);
       setRemainingSecs(res.voucher.durationHours * 3600);
@@ -369,6 +383,21 @@ export const CaptivePortalPage: React.FC<CaptivePortalPageProps> = ({
       setVoucherLoading(false);
     }
   };
+
+  const handleVoucherRedeem = async (e: React.FormEvent) => {
+    e.preventDefault();
+    executeVoucherRedeem(voucherCode);
+  };
+
+  const handleQrScan = (parsed: ParsedQrResult) => {
+    const code = parsed.voucherCode || parsed.raw;
+    if (code) {
+      setVoucherCode(code.toUpperCase());
+      setActiveTab('VOUCHER');
+      executeVoucherRedeem(code);
+    }
+  };
+
 
   // 5. Account Sign In
   const handleAccountLogin = async (e: React.FormEvent) => {
@@ -464,11 +493,8 @@ export const CaptivePortalPage: React.FC<CaptivePortalPageProps> = ({
     }, 500);
   };
 
-  const sampleVouchers = vouchers && vouchers.length > 0 ? vouchers.slice(0, 3) : [
-    { code: 'BRK-8821', packageName: '1 Day Unlimited' },
-    { code: 'BRK-4012', packageName: '3 Hours High Speed' },
-    { code: 'BRK-9914', packageName: '7 Days Weekly Pro' },
-  ];
+  const availableVouchers = vouchers && vouchers.length > 0 ? vouchers.slice(0, 3) : [];
+
 
   return (
     <div className="min-h-screen bg-[#060a17] bg-radial-at-t from-[#0e1b3d] via-[#060a17] to-[#03060f] flex flex-col items-center justify-center p-3 sm:p-5 text-slate-100 font-sans selection:bg-amber-400 selection:text-slate-950">
@@ -964,17 +990,45 @@ export const CaptivePortalPage: React.FC<CaptivePortalPageProps> = ({
             {/* ======================================================== */}
             {activeTab === 'VOUCHER' && (
               <form onSubmit={handleVoucherRedeem} className="space-y-3.5 animate-fade-in">
+                {/* Camera QR Scanner Button */}
+                <button
+                  type="button"
+                  onClick={() => setIsScannerOpen(true)}
+                  className="w-full py-2.5 px-4 bg-gradient-to-r from-amber-400/20 via-amber-400/10 to-amber-400/20 hover:from-amber-400/30 hover:to-amber-400/30 border border-amber-400/40 hover:border-amber-400 rounded-xl text-amber-300 hover:text-amber-200 font-bold text-xs transition-all flex items-center justify-center gap-2 shadow-sm"
+                >
+                  <Camera className="w-4 h-4 text-amber-400" />
+                  <span>{lang === 'SW' ? 'Changanua Vocha kwa Kamera' : 'Scan Voucher QR with Camera'}</span>
+                </button>
+
+                <div className="relative flex py-0.5 items-center">
+                  <div className="flex-grow border-t border-slate-800"></div>
+                  <span className="flex-shrink mx-2 text-[10px] uppercase font-bold text-slate-500 tracking-wider">
+                    {lang === 'SW' ? 'au weka nambari' : 'or enter code'}
+                  </span>
+                  <div className="flex-grow border-t border-slate-800"></div>
+                </div>
+
                 <div>
                   <label className="block text-[11px] font-bold text-slate-400 uppercase mb-1.5 text-center">
                     {lang === 'SW' ? 'Weka Nambari ya Vocha' : 'Enter Voucher PIN Code'}
                   </label>
-                  <input
-                    type="text"
-                    value={voucherCode}
-                    onChange={(e) => setVoucherCode(e.target.value.toUpperCase())}
-                    placeholder="e.g. BRK-8821"
-                    className="w-full bg-slate-900 border border-slate-700 rounded-xl py-3 px-4 text-center font-mono text-lg tracking-widest text-amber-400 uppercase focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400 placeholder:normal-case placeholder:tracking-normal placeholder:text-slate-500"
-                  />
+                  <div className="relative flex items-center">
+                    <input
+                      type="text"
+                      value={voucherCode}
+                      onChange={(e) => setVoucherCode(e.target.value.toUpperCase())}
+                      placeholder="e.g. BRK-8821"
+                      className="w-full bg-slate-900 border border-slate-700 rounded-xl py-3 pl-4 pr-11 text-center font-mono text-lg tracking-widest text-amber-400 uppercase focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400 placeholder:normal-case placeholder:tracking-normal placeholder:text-slate-500"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setIsScannerOpen(true)}
+                      className="absolute right-3 p-1.5 text-slate-400 hover:text-amber-400 transition-colors"
+                      title="Scan with Camera"
+                    >
+                      <QrCode className="w-4 h-4" />
+                    </button>
+                  </div>
                 </div>
 
                 <button
@@ -1006,24 +1060,34 @@ export const CaptivePortalPage: React.FC<CaptivePortalPageProps> = ({
                   </div>
                 )}
 
-                {/* 1-Click Sample Vouchers */}
-                <div className="pt-2 border-t border-slate-800">
-                  <span className="text-[10px] text-slate-400 uppercase tracking-wider block text-center mb-1.5 font-bold">
-                    {lang === 'SW' ? 'Vocha za Jaribio (Bofya Kujaribu)' : 'Quick Sample Vouchers (1-Click Test)'}
-                  </span>
-                  <div className="flex flex-wrap justify-center gap-1.5">
-                    {sampleVouchers.map((v) => (
-                      <button
-                        key={v.code}
-                        type="button"
-                        onClick={() => setVoucherCode(v.code)}
-                        className="px-2.5 py-1 bg-slate-900 hover:bg-slate-800 text-cyan-300 text-[11px] font-mono rounded-lg transition-colors border border-slate-800"
-                      >
-                        {v.code}
-                      </button>
-                    ))}
+                {/* Available Vouchers or Scratchcard guidance */}
+                {availableVouchers.length > 0 ? (
+                  <div className="pt-2 border-t border-slate-800">
+                    <span className="text-[10px] text-slate-400 uppercase tracking-wider block text-center mb-1.5 font-bold">
+                      {lang === 'SW' ? 'Vocha Zilizopo' : 'Available Vouchers'}
+                    </span>
+                    <div className="flex flex-wrap justify-center gap-1.5">
+                      {availableVouchers.map((v) => (
+                        <button
+                          key={v.code}
+                          type="button"
+                          onClick={() => setVoucherCode(v.code)}
+                          className="px-2.5 py-1 bg-slate-900 hover:bg-slate-800 text-cyan-300 text-[11px] font-mono rounded-lg transition-colors border border-slate-800"
+                        >
+                          {v.code}
+                        </button>
+                      ))}
+                    </div>
                   </div>
-                </div>
+                ) : (
+                  <div className="pt-2 border-t border-slate-800 text-center">
+                    <p className="text-[11px] text-slate-400">
+                      {lang === 'SW'
+                        ? 'Weka nambari ya siri ya vocha uliyopokea au changanua kadi yako.'
+                        : 'Enter the PIN from your physical scratch card or scan the printed QR code.'}
+                    </p>
+                  </div>
+                )}
               </form>
             )}
 
@@ -1482,6 +1546,20 @@ add action=accept comment="Cloudflare DNS" dst-host=1.1.1.1
           </div>
         </div>
       )}
+
+      {/* QR Code Camera Scanner Modal */}
+      <QrCodeScannerModal
+        isOpen={isScannerOpen}
+        onClose={() => setIsScannerOpen(false)}
+        onScan={handleQrScan}
+        title={lang === 'SW' ? 'Changanua Vocha kwa Kamera' : 'Scan Voucher QR with Camera'}
+        hint={
+          lang === 'SW'
+            ? 'Elekeza kamera kwenye kadi yako ya vocha au risiti'
+            : 'Point your camera at the printed voucher card or receipt QR'
+        }
+      />
     </div>
   );
 };
+

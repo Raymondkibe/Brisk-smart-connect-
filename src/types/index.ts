@@ -111,6 +111,9 @@ export interface RouterOwnerProfile {
   emailConfigured: boolean;
   referralCode?: string;
   walletBalanceKes?: number;
+  totalReferrals?: number;
+  commissionEarned?: number;
+  availableCommission?: number;
 }
 
 export interface WifiPackage {
@@ -122,7 +125,7 @@ export interface WifiPackage {
   speedLabel: string;
   downloadSpeedMbps: number;
   uploadSpeedMbps: number;
-  category: 'HOURLY' | 'DAILY' | 'MULTI_DAY' | 'MONTHLY';
+  category: 'HOURLY' | 'DAILY' | 'MULTI_DAY' | 'MONTHLY' | 'TV';
   deviceLimit: number;
   fairUsageGb?: number;
   isPopular?: boolean;
@@ -182,6 +185,8 @@ export interface RouterDevice {
   firmwareVersion?: string;
   lastSeen?: string;
   isAntiBypassActive?: boolean;
+  wifiPassword?: string;
+  wifiSecurityMode?: string;
 }
 
 export interface AccessPoint {
@@ -246,6 +251,8 @@ export interface Voucher {
   durationHours: number;
   priceKes: number;
   speed: string;
+  downloadSpeedMbps?: number;
+  uploadSpeedMbps?: number;
   routerId?: string;
   network: string;
   status: VoucherStatus;
@@ -281,7 +288,9 @@ export interface ReferralCommission {
   referredUserId: string;
   referredUserName: string;
   purchasePackage: string;
+  packageName?: string;
   purchaseAmountKes: number;
+  packagePriceKes?: number;
   commissionKes: number;
   ratePercent: number;
   createdAt: string;

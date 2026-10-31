@@ -105,79 +105,25 @@ class BriskDatabase {
   }
 
   seed() {
-    // 1. Initial Users
-    const adminUser: User = {
-      id: 'usr-admin-01',
-      email: 'admin@briskconnect.co.ke',
-      name: 'Super Admin (Platform)',
-      phone: '0712345678',
-      role: 'SUPER_ADMIN',
-      createdAt: '2026-09-01T08:00:00Z',
-      status: 'ACTIVE',
-    };
+    // Clean initial state with zero demo accounts or fake profiles
+    this.users = [];
+    this.customerProfiles.clear();
+    this.routerOwnerProfiles.clear();
+    this.businessProfiles.clear();
+    this.portalConfigs.clear();
+    this.customPackages.clear();
+    this.portalPackageAssignments.clear();
+    this.portalVersions.clear();
+    this.portalDrafts.clear();
+    this.ownerIntegrations.clear();
+    this.ownerIntegrationSecrets.clear();
+    this.notificationTemplates.clear();
+    this.notificationLogs.clear();
+    this.webhooks.clear();
+    this.integrationAuditLogs.clear();
+    this.networkAuditEvents.clear();
 
-    const ownerUser: User = {
-      id: 'usr-owner-01',
-      email: 'owner@briskconnect.co.ke',
-      name: 'Raymond Kamau',
-      phone: '0722000111',
-      role: 'ROUTER_OWNER',
-      createdAt: '2026-09-28T04:00:00Z',
-      status: 'ACTIVE',
-    };
-
-    const customerUser: User = {
-      id: 'usr-cust-01',
-      email: 'customer@briskconnect.co.ke',
-      name: 'John Doe',
-      phone: '0799123456',
-      role: 'CUSTOMER',
-      createdAt: '2026-09-28T04:30:00Z',
-      status: 'ACTIVE',
-    };
-
-    this.users = [adminUser, ownerUser, customerUser];
-
-    // 2. Customer Profile with Active 3-Day Free Package
-    const now = new Date('2026-09-28T04:56:00Z');
-    const freeExpires = new Date('2026-10-01T04:56:00Z');
-
-    this.customerProfiles.set(customerUser.id, {
-      id: 'cp-01',
-      userId: customerUser.id,
-      internetStatus: 'DISCONNECTED',
-      currentNetwork: 'BRISK Smart Connect',
-      currentSpeed: '0 Mbps',
-      dataUsageMb: 0,
-      walletBalance: 0,
-      referralCode: 'BRK' + Math.floor(100000 + Math.random() * 900000),
-      totalReferrals: 0,
-      commissionEarned: 0,
-      availableCommission: 0,
-    });
-
-    // 3. Router Owner Profile with 14-Day Free Trial
-    const trialStarted = new Date();
-    const trialEnds = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000);
-
-    this.routerOwnerProfiles.set(ownerUser.id, {
-      id: 'rop-01',
-      userId: ownerUser.id,
-      businessName: 'BRISK Smart WiFi Networks',
-      subscriptionPlanId: 'sub-plan-starter',
-      subscriptionStatus: 'TRIAL',
-      trialStartedAt: trialStarted.toISOString(),
-      trialEndsAt: trialEnds.toISOString(),
-      subscriptionExpiresAt: trialEnds.toISOString(),
-      maxRouters: 5,
-      maxAccessPoints: 20,
-      maxCustomers: 3000,
-      darajaConfigured: false,
-      whatsappConfigured: false,
-      emailConfigured: false,
-    });
-
-    // 4. Official Customer WiFi Packages (from spec)
+    // 1. Official Customer WiFi Packages (Standard ISP Catalogue)
     this.wifiPackages = [
       {
         id: 'pkg-1h',
@@ -407,6 +353,47 @@ class BriskDatabase {
         deviceLimit: 25,
         description: 'Enterprise grade unthrottled dedicated speed',
       },
+      // Smart TV & Dedicated Streaming WiFi Packages
+      {
+        id: 'pkg-tv-monthly',
+        name: 'Smart TV Monthly Stream',
+        durationHours: 720,
+        durationLabel: '30 days',
+        priceKes: 1500,
+        speedLabel: '20 Mbps',
+        downloadSpeedMbps: 20,
+        uploadSpeedMbps: 15,
+        category: 'TV',
+        deviceLimit: 2,
+        isPopular: true,
+        description: 'Dedicated high-speed unthrottled streaming pass for Smart TV, Netflix, YouTube 4K & IPTV.',
+      },
+      {
+        id: 'pkg-tv-4k',
+        name: 'Smart TV 4K Ultra Stream Pass',
+        durationHours: 720,
+        durationLabel: '30 days',
+        priceKes: 2500,
+        speedLabel: '40 Mbps',
+        downloadSpeedMbps: 40,
+        uploadSpeedMbps: 30,
+        category: 'TV',
+        deviceLimit: 3,
+        description: 'Buffer-free 4K/8K Ultra HD streaming pass for Smart TVs, Apple TV, Android Box, & Console Gaming.',
+      },
+      {
+        id: 'pkg-tv-weekly',
+        name: 'Smart TV Weekly Stream',
+        durationHours: 168,
+        durationLabel: '7 days',
+        priceKes: 500,
+        speedLabel: '25 Mbps',
+        downloadSpeedMbps: 25,
+        uploadSpeedMbps: 15,
+        category: 'TV',
+        deviceLimit: 2,
+        description: '7-day High-definition movie & live sports streaming package for televisions.',
+      },
     ];
 
     // 5. Router Owner Subscription Plans (from spec)
@@ -539,594 +526,121 @@ class BriskDatabase {
     // 15. Network Incidents
     this.incidents = [];
 
-    // 16. Business Profile for Router Owner
-    this.businessProfiles.set(ownerUser.id, {
-      handle: 'brisk_smart_wifi',
-      businessName: 'BRISK Smart WiFi Networks',
-      logoUrl: '',
-      coverImageUrl: '',
-      description: 'High-speed community WiFi hotspot and fiber provider with instant M-Pesa activations.',
-      location: 'Central Network Operations Hub',
-      phone: '+254 722 000 111',
-      whatsapp: '+254 722 000 111',
-      email: 'support@briskconnect.co.ke',
-      openingHours: '24/7 Uninterrupted',
-      services: ['Public WiFi Hotspot', 'Home PPPoE Fiber', 'Voucher Cards', 'WiFi Host Setup'],
-      wifiAvailability: '24/7 Uninterrupted with Backup Solar & Inverter',
-      supportContact: 'Call / WhatsApp: 0722 000 111',
-    });
-
-    // 17. Support Tickets
+    // Operational collections initialized empty - populated by real router owners and guest subscribers
+    this.businessProfiles.clear();
+    this.portalConfigs.clear();
+    this.customPackages.clear();
+    this.portalPackageAssignments.clear();
+    this.portalVersions.clear();
+    this.portalDrafts.clear();
+    this.ownerIntegrations.clear();
+    this.ownerIntegrationSecrets.clear();
+    this.notificationTemplates.clear();
+    this.notificationLogs.clear();
+    this.webhooks.clear();
+    this.integrationAuditLogs.clear();
+    this.networkAuditEvents.clear();
     this.tickets = [];
-
-    // 18. Audit Logs
     this.auditLogs = [];
-
-    // 19. Host Applications
     this.hostApplications = [];
-
-    // 20. Seed Captive Portal Customization Configuration
-    const defaultPortalConfig: PortalConfig = {
-      id: 'portal-usr-owner-01',
-      tenantId: 'usr-owner-01',
-      portalName: 'Kiambu Central Smart Hotspot',
-      businessDisplayName: 'Kiambu Smart WiFi Networks',
-      locationName: 'Kiambu Central Bus Park & Market Hub',
-      welcomeHeading: 'High-Speed Internet Hotspot',
-      welcomeDescription: 'Instant M-Pesa automated activations, ultra-fast fiber speeds, and 24/7 reliability across all devices.',
-      logoPath: '',
-      backgroundImagePath: '',
-      primaryColor: '#f59e0b',
-      secondaryColor: '#0284c7',
-      backgroundColor: '#020617',
-      textColor: '#f8fafc',
-      theme: 'modern',
-      fontFamily: 'Inter',
-      defaultLanguage: 'en',
-      enabledAuthMethods: ['ACCOUNT', 'REGISTER', 'MPESA', 'VOUCHER', 'TRIAL'],
-      supportPhone: '0722 000 111',
-      supportEmail: 'support@kiambuconnect.co.ke',
-      termsUrl: '/terms',
-      privacyUrl: '/privacy',
-      postLoginDestination: 'https://google.com',
-      borderRadius: 'lg',
-      isDarkMode: true,
-      status: 'PUBLISHED',
-      createdAt: '2026-09-15T10:00:00Z',
-      updatedAt: '2026-10-18T14:30:00Z',
-    };
-
-    this.portalConfigs.set('usr-owner-01', defaultPortalConfig);
-
-    // Router Owner Custom WiFi Packages (Starts clean — created dynamically by router owners)
-    this.customPackages.set('usr-owner-01', []);
-    this.portalPackageAssignments.set('usr-owner-01', []);
-    this.portalVersions.set('usr-owner-01', []);
-
-    // 21. Seed Router Owner Integrations (Per-Tenant Isolated Configurations)
-    const ownerIntegrations: OwnerIntegration[] = [
-      {
-        id: 'int-mpesa-01',
-        ownerId: 'usr-owner-01',
-        providerType: 'mpesa',
-        providerName: 'Safaricom Daraja API',
-        environment: 'production',
-        status: 'CONNECTED',
-        publicConfiguration: {
-          integrationName: 'Daraja Lipa na M-Pesa Production',
-          shortcode: '174379',
-          consumerKeyMasked: '8aK1••••••••••dF6g',
-          accountReference: 'BRISK WiFi',
-          transactionDesc: 'WiFi Hotspot Access Package',
-          callbackUrl: 'https://briskconnect.co.ke/api/webhooks/mpesa/usr-owner-01',
-          paymentsEnabled: true,
-        },
-        secretReference: 'vault_sec_mpesa_usr-owner-01',
-        lastTestedAt: new Date(Date.now() - 3600000 * 4).toISOString(),
-        lastSuccessAt: '2 minutes ago',
-        createdAt: '2026-09-15T12:00:00Z',
-        updatedAt: new Date().toISOString(),
-      },
-      {
-        id: 'int-wa-01',
-        ownerId: 'usr-owner-01',
-        providerType: 'whatsapp',
-        providerName: 'Meta WhatsApp Cloud API',
-        environment: 'production',
-        status: 'CONNECTED',
-        publicConfiguration: {
-          integrationName: 'Meta WhatsApp Cloud API',
-          wabaId: '108492049102941',
-          phoneNumberId: '1048201948201',
-          displayPhoneNumber: '+254 722 000 111',
-          webhookStatus: 'VERIFIED',
-          defaultLanguage: 'en_US',
-        },
-        secretReference: 'vault_sec_wa_usr-owner-01',
-        lastTestedAt: new Date(Date.now() - 3600000 * 2).toISOString(),
-        lastSuccessAt: 'Just now',
-        createdAt: '2026-09-15T12:00:00Z',
-        updatedAt: new Date().toISOString(),
-      },
-      {
-        id: 'int-sms-01',
-        ownerId: 'usr-owner-01',
-        providerType: 'sms',
-        providerName: "Africa's Talking",
-        environment: 'production',
-        status: 'CONNECTED',
-        publicConfiguration: {
-          provider: 'africas_talking',
-          username: 'kiambuwifi_sandbox',
-          senderId: 'BRISK_WIFI',
-          remainingCredits: 4850,
-        },
-        secretReference: 'vault_sec_sms_usr-owner-01',
-        lastTestedAt: new Date(Date.now() - 3600000 * 6).toISOString(),
-        lastSuccessAt: '10 minutes ago',
-        createdAt: '2026-09-15T12:00:00Z',
-        updatedAt: new Date().toISOString(),
-      },
-      {
-        id: 'int-email-01',
-        ownerId: 'usr-owner-01',
-        providerType: 'email',
-        providerName: 'Resend API',
-        environment: 'production',
-        status: 'CONNECTED',
-        publicConfiguration: {
-          provider: 'resend',
-          senderEmail: 'billing@kiambuwifi.co.ke',
-          senderName: 'Kiambu Smart WiFi Billing',
-          domainVerified: true,
-        },
-        secretReference: 'vault_sec_email_usr-owner-01',
-        lastTestedAt: new Date(Date.now() - 3600000 * 12).toISOString(),
-        lastSuccessAt: 'Today at 09:14 AM',
-        createdAt: '2026-09-15T12:00:00Z',
-        updatedAt: new Date().toISOString(),
-      },
-    ];
-    this.ownerIntegrations.set('usr-owner-01', ownerIntegrations);
-
-    // Seed secure server-side secrets
-    const ownerSecretsMap = new Map<string, any>();
-    ownerSecretsMap.set('mpesa', {
-      consumerKey: '8aK12x9vL0mP4qW7rT2yU5iO8sA3dF6g',
-      consumerSecret: '9bL23y0wM1nQ5rX8sU3zV6jP9tB4eG7h',
-      passkey: 'bfb279f9aa9bdbcf158e97dd71a467cd2e0c893059b10f78e6b72ada1ed2c919',
-      shortcode: '174379',
-    });
-    ownerSecretsMap.set('whatsapp', {
-      accessToken: 'EAAGNO4ZB2910482019482014820148201',
-      appSecret: '7c8d9e0f1a2b3c4d5e6f',
-      webhookVerifyToken: 'brisk_wa_verify_2026_kiambu',
-    });
-    ownerSecretsMap.set('sms', {
-      apiKey: 'atsk_d8291048a9104f9810482910481048b',
-    });
-    ownerSecretsMap.set('email', {
-      apiKey: 're_8291048201_brisk_kiambu_secure',
-    });
-    this.ownerIntegrationSecrets.set('usr-owner-01', ownerSecretsMap);
-
-    // 22. Seed Notification Templates
-    this.notificationTemplates.set('usr-owner-01', [
-      {
-        id: 'tpl-1',
-        ownerId: 'usr-owner-01',
-        type: 'PAYMENT_SUCCESS',
-        title: 'Payment Confirmed',
-        channel: 'WHATSAPP',
-        content: 'Jambo {{customer_name}}, your M-Pesa payment of KES {{amount}} for {{package_name}} was successful! Ref: {{transaction_reference}}. Your high-speed access is active.',
-        variables: ['customer_name', 'amount', 'package_name', 'transaction_reference'],
-        updatedAt: new Date().toISOString(),
-      },
-      {
-        id: 'tpl-2',
-        ownerId: 'usr-owner-01',
-        type: 'RECEIPT',
-        title: 'Digital Purchase Receipt',
-        channel: 'WHATSAPP',
-        content: 'Official WiFi Receipt from {{business_name}}:\nTransaction: {{transaction_reference}}\nAmount: KES {{amount}}\nPass: {{package_name}}\nExpires: {{expiry_date}}\nHelpline: {{support_phone}}',
-        variables: ['business_name', 'transaction_reference', 'amount', 'package_name', 'expiry_date', 'support_phone'],
-        updatedAt: new Date().toISOString(),
-      },
-      {
-        id: 'tpl-3',
-        ownerId: 'usr-owner-01',
-        type: 'PACKAGE_ACTIVATED',
-        title: 'Internet Access Activated',
-        channel: 'WHATSAPP',
-        content: 'Welcome online! Your {{package_name}} connection on {{business_name}} is authorized at full bandwidth. Valid until {{expiry_date}}.',
-        variables: ['package_name', 'business_name', 'expiry_date'],
-        updatedAt: new Date().toISOString(),
-      },
-      {
-        id: 'tpl-4',
-        ownerId: 'usr-owner-01',
-        type: 'EXPIRING_SOON',
-        title: 'Package Expiring in 10 Minutes',
-        channel: 'SMS',
-        content: 'Notice: Your {{business_name}} WiFi pass expires at {{expiry_date}}. Renew now via M-Pesa on the captive portal to avoid disconnection: {{support_phone}}',
-        variables: ['business_name', 'expiry_date', 'support_phone'],
-        updatedAt: new Date().toISOString(),
-      },
-      {
-        id: 'tpl-5',
-        ownerId: 'usr-owner-01',
-        type: 'VOUCHER_CREATED',
-        title: 'Voucher PIN Delivered',
-        channel: 'SMS',
-        content: 'Your {{business_name}} WiFi voucher code is: {{voucher_code}}. Enter this PIN at the login portal to connect {{duration_hours}} hours of high-speed browsing.',
-        variables: ['business_name', 'voucher_code', 'duration_hours'],
-        updatedAt: new Date().toISOString(),
-      },
-    ]);
-
-    // 23. Seed Delivery Logs
-    this.notificationLogs.set('usr-owner-01', [
-      {
-        id: 'nlog-01',
-        ownerId: 'usr-owner-01',
-        channel: 'WHATSAPP',
-        notificationType: 'PAYMENT_SUCCESS',
-        recipientMasked: '+254 799 ••• 456',
-        provider: 'Meta Cloud API',
-        providerMessageId: 'wamid.HBgLMjU0Nzk5MTIzNDU2FQIAERgSRTk0QzIzODc0',
-        status: 'DELIVERED',
-        createdAt: new Date(Date.now() - 120000).toISOString(),
-        deliveredAt: new Date(Date.now() - 110000).toISOString(),
-      },
-      {
-        id: 'nlog-02',
-        ownerId: 'usr-owner-01',
-        channel: 'WHATSAPP',
-        notificationType: 'RECEIPT',
-        recipientMasked: '+254 711 ••• 654',
-        provider: 'Meta Cloud API',
-        providerMessageId: 'wamid.HBgLMjU0NzExOTg3NjU0FQIAERgSRTk0QzIzODc1',
-        status: 'DELIVERED',
-        createdAt: new Date(Date.now() - 480000).toISOString(),
-        deliveredAt: new Date(Date.now() - 470000).toISOString(),
-      },
-      {
-        id: 'nlog-03',
-        ownerId: 'usr-owner-01',
-        channel: 'SMS',
-        notificationType: 'EXPIRING_SOON',
-        recipientMasked: '+254 722 ••• 455',
-        provider: "Africa's Talking",
-        providerMessageId: 'ATXid_892019482014820',
-        status: 'DELIVERED',
-        createdAt: new Date(Date.now() - 1200000).toISOString(),
-        deliveredAt: new Date(Date.now() - 1190000).toISOString(),
-      },
-      {
-        id: 'nlog-04',
-        ownerId: 'usr-owner-01',
-        channel: 'EMAIL',
-        notificationType: 'RECEIPT',
-        recipientMasked: 'kevin.om••••@gmail.com',
-        provider: 'Resend',
-        providerMessageId: 'email_re_948201948201',
-        status: 'DELIVERED',
-        createdAt: new Date(Date.now() - 3600000).toISOString(),
-        deliveredAt: new Date(Date.now() - 3590000).toISOString(),
-      },
-      {
-        id: 'nlog-05',
-        ownerId: 'usr-owner-01',
-        channel: 'SMS',
-        notificationType: 'VOUCHER_CREATED',
-        recipientMasked: '+254 700 ••• 112',
-        provider: "Africa's Talking",
-        providerMessageId: 'ATXid_fail_0192',
-        status: 'FAILED',
-        errorCode: 'PROVIDER_TIMEOUT',
-        errorMessage: 'Network carrier delivery timeout. Click retry to re-queue via secondary SMS route.',
-        createdAt: new Date(Date.now() - 14400000).toISOString(),
-      },
-    ]);
-
-    // 24. Seed Webhook Endpoints
-    this.webhooks.set('usr-owner-01', [
-      {
-        id: 'wh-mpesa',
-        ownerId: 'usr-owner-01',
-        provider: 'mpesa',
-        endpointUrl: 'https://briskconnect.co.ke/api/webhooks/mpesa/usr-owner-01',
-        secretToken: 'whsec_daraja_c2b_stk_kiambu_2026',
-        status: 'ACTIVE',
-        eventsReceived: 142,
-        lastReceivedAt: new Date(Date.now() - 120000).toISOString(),
-        signatureHeader: 'X-Safaricom-Signature (HMAC-SHA256)',
-      },
-      {
-        id: 'wh-whatsapp',
-        ownerId: 'usr-owner-01',
-        provider: 'whatsapp',
-        endpointUrl: 'https://briskconnect.co.ke/api/webhooks/whatsapp/usr-owner-01',
-        secretToken: 'brisk_wa_verify_2026_kiambu',
-        status: 'ACTIVE',
-        eventsReceived: 89,
-        lastReceivedAt: new Date(Date.now() - 480000).toISOString(),
-        signatureHeader: 'X-Hub-Signature-256 (Meta HMAC)',
-      },
-      {
-        id: 'wh-sms',
-        ownerId: 'usr-owner-01',
-        provider: 'sms',
-        endpointUrl: 'https://briskconnect.co.ke/api/webhooks/sms/usr-owner-01',
-        secretToken: 'whsec_sms_dlr_kiambu_2026',
-        status: 'ACTIVE',
-        eventsReceived: 310,
-        lastReceivedAt: new Date(Date.now() - 1200000).toISOString(),
-        signatureHeader: 'X-AfricaTalking-Token',
-      },
-      {
-        id: 'wh-email',
-        ownerId: 'usr-owner-01',
-        provider: 'email',
-        endpointUrl: 'https://briskconnect.co.ke/api/webhooks/email/usr-owner-01',
-        secretToken: 'whsec_resend_svix_kiambu_2026',
-        status: 'ACTIVE',
-        eventsReceived: 64,
-        lastReceivedAt: new Date(Date.now() - 3600000).toISOString(),
-        signatureHeader: 'svix-signature',
-      },
-    ]);
-
-    // 25. Seed Integration Audit Logs
-    this.integrationAuditLogs.set('usr-owner-01', [
-      {
-        id: 'sec-log-01',
-        ownerId: 'usr-owner-01',
-        action: 'CONNECTION_TESTED',
-        integrationId: 'int-mpesa-01',
-        providerType: 'mpesa',
-        timestamp: new Date(Date.now() - 7200000).toISOString(),
-        ipAddress: '105.160.28.91',
-        result: 'SUCCESS',
-        details: 'Safaricom Daraja API handshake verified. Token generated for Shortcode 174379.',
-      },
-      {
-        id: 'sec-log-02',
-        ownerId: 'usr-owner-01',
-        action: 'WEBHOOK_VERIFIED',
-        integrationId: 'int-wa-01',
-        providerType: 'whatsapp',
-        timestamp: new Date(Date.now() - 14400000).toISOString(),
-        ipAddress: '105.160.28.91',
-        result: 'SUCCESS',
-        details: 'Meta Cloud API Webhook handshake verified (hub.challenge responded 200 OK).',
-      },
-      {
-        id: 'sec-log-03',
-        ownerId: 'usr-owner-01',
-        action: 'KEY_ROTATED',
-        integrationId: 'int-mpesa-01',
-        providerType: 'mpesa',
-        timestamp: new Date(Date.now() - 86400000 * 3).toISOString(),
-        ipAddress: '105.160.28.91',
-        result: 'SUCCESS',
-        details: 'Daraja Consumer Secret rotated and re-encrypted in Supabase Vault.',
-      },
-      {
-        id: 'sec-log-04',
-        ownerId: 'usr-owner-01',
-        action: 'PAYMENTS_ENABLED',
-        integrationId: 'int-mpesa-01',
-        providerType: 'mpesa',
-        timestamp: new Date(Date.now() - 86400000 * 5).toISOString(),
-        ipAddress: '105.160.28.91',
-        result: 'SUCCESS',
-        details: 'Customer live STK push payments enabled for all authorized hotspot routers.',
-      },
-    ]);
-
-    // 26. Seed Real-Time Network & Security Audit Events (Router Config Changes & Guest Connections)
-    const currentTimeMs = Date.now();
-    this.networkAuditEvents.set('usr-owner-01', [
-      {
-        id: 'audit-evt-01',
-        category: 'GUEST_CONNECTION',
-        eventType: 'GUEST_SESSION_AUTHORIZED',
-        title: 'Guest Internet Session Authorized via M-Pesa',
-        description: 'M-Pesa STK Push payment verified (KES 60.00). Router authorized 12 Hours Day Pass on AP 01 Kiambu Market.',
-        severity: 'SUCCESS',
-        routerId: 'rtr-01',
-        routerName: 'Kiambu Main Gateway',
-        accessPointName: 'AP 01 Kiambu Market',
-        actor: 'Daraja Callback IPN (Auto)',
-        targetIp: '192.168.88.142',
-        targetMac: 'DC:A6:32:89:BC:11',
-        timestamp: new Date(currentTimeMs - 45000).toISOString(),
-        metadata: {
-          packageName: '12 Hours Day Pass',
-          amountKes: 60,
-          receiptNumber: 'BRK-MPE892019',
-          phoneMasked: '0799 ••• 456',
-        },
-      },
-      {
-        id: 'audit-evt-02',
-        category: 'ROUTER_CONFIG',
-        eventType: 'CONFIG_BANDWIDTH_LIMIT_CHANGED',
-        title: 'Bandwidth Traffic Queues Updated',
-        description: 'Target download speed queue modified from 10 Mbps to 20 Mbps on bridge-hotspot interface to optimize throughput.',
-        severity: 'INFO',
-        routerId: 'rtr-01',
-        routerName: 'Kiambu Main Gateway',
-        actor: 'Raymond Kamau (Router Owner)',
-        targetIp: '192.168.88.1',
-        timestamp: new Date(currentTimeMs - 120000).toISOString(),
-        metadata: {
-          previousLimit: '10M/5M',
-          newLimit: '20M/15M',
-          interface: 'bridge1-hotspot',
-        },
-      },
-      {
-        id: 'audit-evt-03',
-        category: 'GUEST_CONNECTION',
-        eventType: 'GUEST_DEVICE_ASSOCIATED',
-        title: 'New Guest Associated to Access Point',
-        description: 'iPhone 15 Pro associated on AP 01 Kiambu Market (5GHz, Channel 36, Signal -56 dBm).',
-        severity: 'INFO',
-        routerId: 'rtr-01',
-        routerName: 'Kiambu Main Gateway',
-        accessPointName: 'AP 01 Kiambu Market',
-        actor: 'Wireless 802.11ax Controller',
-        targetIp: '192.168.88.142',
-        targetMac: 'DC:A6:32:89:BC:11',
-        timestamp: new Date(currentTimeMs - 180000).toISOString(),
-        metadata: {
-          rssi: '-56 dBm',
-          band: '5GHz',
-          ssid: 'BRISK_Smart_WiFi_Kiambu',
-        },
-      },
-      {
-        id: 'audit-evt-04',
-        category: 'ROUTER_CONFIG',
-        eventType: 'CONFIG_HOTSPOT_PROFILE_SYNCED',
-        title: 'Captive Portal & Custom Packages Synchronized',
-        description: 'Published Version 3 captive portal branding, theme, and 3 custom router owner packages to gateway.',
-        severity: 'SUCCESS',
-        routerId: 'rtr-01',
-        routerName: 'Kiambu Main Gateway',
-        actor: 'Raymond Kamau (Portal Studio)',
-        targetIp: '192.168.88.1',
-        timestamp: new Date(currentTimeMs - 340000).toISOString(),
-        metadata: {
-          version: 'Version 3 (Live)',
-          packagesCount: 3,
-          theme: 'Amber Modern',
-        },
-      },
-      {
-        id: 'audit-evt-05',
-        category: 'GUEST_CONNECTION',
-        eventType: 'GUEST_DHCP_LEASE_GRANTED',
-        title: 'DHCP Dynamic IP Lease Issued',
-        description: 'DHCP server assigned IP 192.168.88.174 to client device (Samsung Galaxy S24) for 24 hours lease.',
-        severity: 'INFO',
-        routerId: 'rtr-02',
-        routerName: 'Ndumberi Hub Router',
-        accessPointName: 'AP 02 Ndumberi Bus Park',
-        actor: 'RouterOS DHCP Server',
-        targetIp: '192.168.88.174',
-        targetMac: 'E4:5F:01:AA:32:89',
-        timestamp: new Date(currentTimeMs - 560000).toISOString(),
-        metadata: {
-          leaseTime: '24h',
-          pool: 'dhcp_pool_hotspot',
-        },
-      },
-      {
-        id: 'audit-evt-06',
-        category: 'PAYMENT_AUTH',
-        eventType: 'GUEST_VOUCHER_REDEEMED',
-        title: 'Prepaid Voucher PIN Successfully Redeemed',
-        description: 'Guest authenticated using voucher PIN BRK-9041-A. Authorized 24 Hours Full Day Pass on Ndumberi AP.',
-        severity: 'SUCCESS',
-        routerId: 'rtr-02',
-        routerName: 'Ndumberi Hub Router',
-        accessPointName: 'AP 02 Ndumberi Bus Park',
-        actor: 'Voucher Engine',
-        targetIp: '192.168.88.174',
-        targetMac: 'E4:5F:01:AA:32:89',
-        timestamp: new Date(currentTimeMs - 780000).toISOString(),
-        metadata: {
-          voucherCode: 'BRK-9041-A',
-          duration: '24 hours',
-        },
-      },
-      {
-        id: 'audit-evt-07',
-        category: 'ROUTER_CONFIG',
-        eventType: 'CONFIG_DHCP_POOL_MODIFIED',
-        title: 'DHCP Subnet Pool Range Expanded',
-        description: 'Subnet pool expanded from 192.168.88.100-180 to 192.168.88.100-250 to accommodate peak customer demand.',
-        severity: 'INFO',
-        routerId: 'rtr-01',
-        routerName: 'Kiambu Main Gateway',
-        actor: 'Raymond Kamau (Router Owner)',
-        targetIp: '192.168.88.1',
-        timestamp: new Date(currentTimeMs - 1200000).toISOString(),
-        metadata: {
-          poolName: 'dhcp_pool_hotspot',
-          newRange: '192.168.88.100-192.168.88.250',
-          totalCapacity: 151,
-        },
-      },
-      {
-        id: 'audit-evt-08',
-        category: 'ROUTER_CONFIG',
-        eventType: 'CONFIG_FIREWALL_NAT_APPLIED',
-        title: 'Captive Portal Firewall Redirect Rule Re-applied',
-        description: 'iptables NAT rule verified: redirect port 80/443 traffic for unauthenticated guests to 192.168.88.1:8080.',
-        severity: 'SUCCESS',
-        routerId: 'rtr-01',
-        routerName: 'Kiambu Main Gateway',
-        actor: 'MikroTik Hotspot Core Daemon',
-        targetIp: '192.168.88.1',
-        timestamp: new Date(currentTimeMs - 1800000).toISOString(),
-      },
-      {
-        id: 'audit-evt-09',
-        category: 'SECURITY',
-        eventType: 'SECURITY_ROGUE_MAC_CHALLENGED',
-        title: 'Unauthenticated Traffic Filtered by Walled Garden',
-        description: 'Device attempted to access unauthorized external IP without captive portal authentication. Redirected to login.',
-        severity: 'WARNING',
-        routerId: 'rtr-01',
-        routerName: 'Kiambu Main Gateway',
-        actor: 'Firewall Filter Engine',
-        targetIp: '192.168.88.211',
-        targetMac: '50:3E:AA:91:02:1F',
-        timestamp: new Date(currentTimeMs - 2400000).toISOString(),
-      },
-      {
-        id: 'audit-evt-10',
-        category: 'GUEST_CONNECTION',
-        eventType: 'GUEST_SESSION_EXPIRED',
-        title: 'Guest Session Timeout & Graceful Disconnect',
-        description: 'Guest session expired (2 Hours Turbo Pass elapsed). Total data consumed: 412 MB. Port re-locked.',
-        severity: 'INFO',
-        routerId: 'rtr-01',
-        routerName: 'Kiambu Main Gateway',
-        accessPointName: 'AP 01 Kiambu Market',
-        actor: 'Hotspot Accounting Daemon',
-        targetIp: '192.168.88.118',
-        targetMac: 'B2:44:01:8A:90:33',
-        timestamp: new Date(currentTimeMs - 3100000).toISOString(),
-        metadata: {
-          bytesTransferred: '412 MB',
-          connectedDuration: '2h 00m',
-        },
-      },
-    ]);
-
-    // 27. Owner Payment Methods (Payout Channels)
     this.paymentMethods = [];
-
-    // 28. Router Setup Scripts & Tokens
     this.setupScripts = [];
-
-    // 29. Manual Payments for captive portal
     this.manualPayments = [];
-
-    // 30. Subscription Activation Codes
     this.subscriptionActivationCodes = [];
-
-    // 31. Manual Subscription Payment Requests from Router Owners
     this.manualSubscriptionRequests = [];
   }
 }
 
 const db = new BriskDatabase();
+
+// Default portal configuration template for new router owners or visitors
+export function getDefaultPortalConfig(tenantId: string = 'default'): PortalConfig {
+  return {
+    id: `portal-${tenantId}`,
+    tenantId,
+    portalName: 'BRISK Smart Hotspot',
+    businessDisplayName: 'BRISK Smart Connect',
+    locationName: 'Local Hotspot Zone',
+    welcomeHeading: 'High-Speed Internet Hotspot',
+    welcomeDescription: 'Instant M-Pesa automated activations, high-speed WiFi, and 24/7 reliability across all devices.',
+    logoPath: '',
+    backgroundImagePath: '',
+    primaryColor: '#f59e0b',
+    secondaryColor: '#0284c7',
+    backgroundColor: '#020617',
+    textColor: '#f8fafc',
+    theme: 'modern',
+    fontFamily: 'Inter',
+    defaultLanguage: 'en',
+    enabledAuthMethods: ['ACCOUNT', 'REGISTER', 'MPESA', 'VOUCHER', 'TRIAL'],
+    supportPhone: '0712 345 678',
+    supportEmail: 'support@briskconnect.co.ke',
+    termsUrl: '/terms',
+    privacyUrl: '/privacy',
+    postLoginDestination: 'https://google.com',
+    borderRadius: 'lg',
+    isDarkMode: true,
+    status: 'PUBLISHED',
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  };
+}
+
+// Default notification templates for router owners
+export function getDefaultNotificationTemplates(ownerId: string): NotificationTemplate[] {
+  return [
+    {
+      id: `tpl-1-${ownerId}`,
+      ownerId,
+      type: 'PAYMENT_SUCCESS',
+      title: 'Payment Confirmed',
+      channel: 'WHATSAPP',
+      content: 'Jambo {{customer_name}}, your M-Pesa payment of KES {{amount}} for {{package_name}} was successful! Ref: {{transaction_reference}}. Your high-speed access is active.',
+      variables: ['customer_name', 'amount', 'package_name', 'transaction_reference'],
+      updatedAt: new Date().toISOString(),
+    },
+    {
+      id: `tpl-2-${ownerId}`,
+      ownerId,
+      type: 'RECEIPT',
+      title: 'Digital Purchase Receipt',
+      channel: 'WHATSAPP',
+      content: 'Official WiFi Receipt from {{business_name}}:\nTransaction: {{transaction_reference}}\nAmount: KES {{amount}}\nPass: {{package_name}}\nExpires: {{expiry_date}}\nHelpline: {{support_phone}}',
+      variables: ['business_name', 'transaction_reference', 'amount', 'package_name', 'expiry_date', 'support_phone'],
+      updatedAt: new Date().toISOString(),
+    },
+    {
+      id: `tpl-3-${ownerId}`,
+      ownerId,
+      type: 'PACKAGE_ACTIVATED',
+      title: 'Internet Access Activated',
+      channel: 'WHATSAPP',
+      content: 'Welcome online! Your {{package_name}} connection on {{business_name}} is authorized at full bandwidth. Valid until {{expiry_date}}.',
+      variables: ['package_name', 'business_name', 'expiry_date'],
+      updatedAt: new Date().toISOString(),
+    },
+    {
+      id: `tpl-4-${ownerId}`,
+      ownerId,
+      type: 'EXPIRING_SOON',
+      title: 'Package Expiring in 10 Minutes',
+      channel: 'SMS',
+      content: 'Notice: Your {{business_name}} WiFi pass expires at {{expiry_date}}. Renew now via M-Pesa on the captive portal to avoid disconnection: {{support_phone}}',
+      variables: ['business_name', 'expiry_date', 'support_phone'],
+      updatedAt: new Date().toISOString(),
+    },
+    {
+      id: `tpl-5-${ownerId}`,
+      ownerId,
+      type: 'VOUCHER_CREATED',
+      title: 'Voucher PIN Delivered',
+      channel: 'SMS',
+      content: 'Your {{business_name}} WiFi voucher code is: {{voucher_code}}. Enter this PIN at the login portal to connect {{duration_hours}} hours of high-speed browsing.',
+      variables: ['business_name', 'voucher_code', 'duration_hours'],
+      updatedAt: new Date().toISOString(),
+    },
+  ];
+}
 
 // ==========================================
 // API ROUTES
@@ -1134,16 +648,27 @@ const db = new BriskDatabase();
 
 // Auth Endpoints
 app.post('/api/auth/login', (req, res) => {
-  const { email, role } = req.body;
-  let user = db.users.find((u) => u.email.toLowerCase() === (email || '').toLowerCase());
+  const { email, role, phone, identifier } = req.body;
+  const lookup = (identifier || email || phone || '').trim().toLowerCase();
+  const digitsOnly = lookup.replace(/[^0-9]/g, '');
 
-  // If role is provided or user exists
+  let user = db.users.find((u) => {
+    const uEmail = (u.email || '').toLowerCase();
+    const uPhone = (u.phone || '').replace(/[^0-9]/g, '');
+    const uName = (u.name || '').toLowerCase();
+    return (
+      (lookup && uEmail === lookup) ||
+      (digitsOnly && uPhone && uPhone.includes(digitsOnly)) ||
+      (lookup && uName === lookup)
+    );
+  });
+
   if (!user && role) {
     user = db.users.find((u) => u.role === role);
   }
 
   if (!user) {
-    return res.status(401).json({ error: 'User not found. Please register or select a valid role.' });
+    return res.status(401).json({ error: 'No account found with these credentials. Please check your phone/email or register a new account.' });
   }
 
   return res.json({
@@ -1151,25 +676,33 @@ app.post('/api/auth/login', (req, res) => {
     token: `brisk_jwt_${user.id}_${Date.now()}`,
     customerProfile: db.customerProfiles.get(user.id),
     ownerProfile: db.routerOwnerProfiles.get(user.id),
+    businessProfile: db.businessProfiles.get(user.id),
   });
 });
 
 app.post('/api/auth/register', (req, res) => {
   const { name, email, phone, role } = req.body;
-  if (!name || !email || !phone || !role) {
-    return res.status(400).json({ error: 'All fields (name, email, phone, role) are required.' });
+  if (!name || !phone || !role) {
+    return res.status(400).json({ error: 'Name, phone number, and account role are required.' });
   }
 
-  const existing = db.users.find((u) => u.email.toLowerCase() === email.toLowerCase());
+  const cleanPhone = phone.trim();
+  const cleanEmail = email?.trim() || `${cleanPhone.replace(/[^0-9]/g, '')}@briskconnect.co.ke`;
+
+  const existing = db.users.find(
+    (u) =>
+      (u.email && u.email.toLowerCase() === cleanEmail.toLowerCase()) ||
+      (u.phone && u.phone.replace(/[^0-9]/g, '') === cleanPhone.replace(/[^0-9]/g, ''))
+  );
   if (existing) {
-    return res.status(400).json({ error: 'An account with this email already exists.' });
+    return res.status(400).json({ error: 'An account with this phone number or email already exists. Please sign in.' });
   }
 
   const newUser: User = {
     id: `usr-${Date.now()}`,
-    name,
-    email,
-    phone,
+    name: name.trim(),
+    email: cleanEmail,
+    phone: cleanPhone,
     role: role as any,
     createdAt: new Date().toISOString(),
     status: 'ACTIVE',
@@ -1187,7 +720,7 @@ app.post('/api/auth/register', (req, res) => {
       id: `cp-${Date.now()}`,
       userId: newUser.id,
       internetStatus: 'CONNECTED',
-      currentNetwork: 'BRISK Kiambu',
+      currentNetwork: 'BRISK Smart Connect',
       currentSpeed: '10 Mbps',
       dataUsageMb: 0,
       walletBalance: 0,
@@ -1198,7 +731,7 @@ app.post('/api/auth/register', (req, res) => {
       currentPackage: {
         id: `cpkg-${Date.now()}`,
         packageId: 'pkg-free-3d',
-        packageName: '3 Days Free',
+        packageName: '3 Days Free Welcome Pass',
         activatedAt: now.toISOString(),
         expiresAt: expiresAt.toISOString(),
         status: 'ACTIVE',
@@ -1217,7 +750,7 @@ app.post('/api/auth/register', (req, res) => {
       ipAddress: req.ip || '127.0.0.1',
       timestamp: new Date().toISOString(),
       result: 'SUCCESS',
-      details: 'Automatic 3-Day Free WiFi Package provisioned.',
+      details: 'Automatic 3-Day Free Welcome WiFi pass provisioned.',
     });
   }
 
@@ -1235,14 +768,42 @@ app.post('/api/auth/register', (req, res) => {
       trialStartedAt: now.toISOString(),
       trialEndsAt: trialEndsAt.toISOString(),
       subscriptionExpiresAt: trialEndsAt.toISOString(),
-      maxRouters: 1,
-      maxAccessPoints: 3,
-      maxCustomers: 500,
+      maxRouters: 5,
+      maxAccessPoints: 20,
+      maxCustomers: 3000,
       darajaConfigured: false,
       whatsappConfigured: false,
       emailConfigured: false,
     };
     db.routerOwnerProfiles.set(newUser.id, profile);
+
+    // Initialize business profile, portal configuration, and notification templates for the new owner
+    db.businessProfiles.set(newUser.id, {
+      handle: newUser.name.toLowerCase().replace(/[^a-z0-9]/g, '_'),
+      businessName: `${newUser.name}'s WiFi Network`,
+      logoUrl: '',
+      coverImageUrl: '',
+      description: 'High-speed community WiFi hotspot provider with instant M-Pesa activations.',
+      location: 'Local Network Hub',
+      phone: newUser.phone,
+      whatsapp: newUser.phone,
+      email: newUser.email,
+      openingHours: '24/7 Uninterrupted',
+      services: ['Public WiFi Hotspot', 'Voucher Cards'],
+      wifiAvailability: '24/7 Uninterrupted',
+      supportContact: `Call / WhatsApp: ${newUser.phone}`,
+    });
+
+    db.portalConfigs.set(newUser.id, getDefaultPortalConfig(newUser.id));
+    db.customPackages.set(newUser.id, []);
+    db.portalPackageAssignments.set(newUser.id, []);
+    db.portalVersions.set(newUser.id, []);
+    db.ownerIntegrations.set(newUser.id, []);
+    db.notificationTemplates.set(newUser.id, getDefaultNotificationTemplates(newUser.id));
+    db.notificationLogs.set(newUser.id, []);
+    db.webhooks.set(newUser.id, []);
+    db.integrationAuditLogs.set(newUser.id, []);
+    db.networkAuditEvents.set(newUser.id, []);
 
     db.auditLogs.unshift({
       id: `log-${Date.now()}`,
@@ -1253,7 +814,22 @@ app.post('/api/auth/register', (req, res) => {
       ipAddress: req.ip || '127.0.0.1',
       timestamp: new Date().toISOString(),
       result: 'SUCCESS',
-      details: '14-Day Free Trial initiated.',
+      details: '14-Day Free Router Owner Trial initiated.',
+    });
+  }
+
+  // If registering as SUPER_ADMIN
+  if (role === 'SUPER_ADMIN') {
+    db.auditLogs.unshift({
+      id: `log-${Date.now()}`,
+      userName: newUser.name,
+      userRole: 'SUPER_ADMIN',
+      action: 'ADMIN_REGISTERED',
+      resource: 'SYSTEM',
+      ipAddress: req.ip || '127.0.0.1',
+      timestamp: new Date().toISOString(),
+      result: 'SUCCESS',
+      details: 'Super Admin account provisioned.',
     });
   }
 
@@ -1262,16 +838,24 @@ app.post('/api/auth/register', (req, res) => {
     token: `brisk_jwt_${newUser.id}_${Date.now()}`,
     customerProfile: db.customerProfiles.get(newUser.id),
     ownerProfile: db.routerOwnerProfiles.get(newUser.id),
+    businessProfile: db.businessProfiles.get(newUser.id),
   });
 });
 
 app.get('/api/auth/me', (req, res) => {
   const userId = req.headers['x-user-id'] as string;
-  const user = db.users.find((u) => u.id === userId) || db.users[1]; // default to router owner or first
+  if (!userId) {
+    return res.status(401).json({ error: 'No user authenticated' });
+  }
+  const user = db.users.find((u) => u.id === userId);
+  if (!user) {
+    return res.status(404).json({ error: 'User session not found' });
+  }
   return res.json({
     user,
     customerProfile: db.customerProfiles.get(user.id),
     ownerProfile: db.routerOwnerProfiles.get(user.id),
+    businessProfile: db.businessProfiles.get(user.id),
   });
 });
 
@@ -2285,6 +1869,51 @@ app.post('/api/owner/routers/action', (req, res) => {
   return res.json({ success: true, message: 'Action executed successfully.' });
 });
 
+// Router Network Credentials (SSID & WiFi Password Update)
+app.post('/api/owner/routers/:id/network-credentials', (req, res) => {
+  const routerId = req.params.id;
+  const { ssid, wifiPassword, securityMode, band } = req.body;
+  const router = db.routers.find((r) => r.id === routerId);
+
+  if (!router) {
+    return res.status(404).json({ error: 'Router not found.' });
+  }
+
+  if (ssid) router.networkName = ssid.trim();
+  if (wifiPassword !== undefined) (router as any).wifiPassword = wifiPassword;
+  if (securityMode) (router as any).wifiSecurityMode = securityMode;
+
+  const interfaceName = band === '5ghz' ? 'wlan2' : 'wlan1';
+  const secProfile = securityMode === 'OPEN' ? 'none' : 'wpa2-brisk';
+  const passphrase = wifiPassword || 'BriskConnect2026!';
+
+  const mikrotikScript = `# MikroTik RouterOS Wireless Credentials Command
+/interface wireless security-profiles add name="${secProfile}" mode=dynamic-keys authentication-types=wpa2-psk unicast-ciphers=aes-ccm wpa2-pre-shared-key="${passphrase}"
+/interface wireless set [ find default-name=${interfaceName} ] ssid="${router.networkName}" security-profile="${secProfile}" disabled=no
+/interface wifiwave2 configuration add name="brisk_wifi_cfg" ssid="${router.networkName}" security.passphrase="${passphrase}"
+/system logging add topics=wireless action=memory
+`;
+
+  db.auditLogs.unshift({
+    id: `log-${Date.now()}`,
+    userName: router.ownerName || 'Router Owner',
+    userRole: 'ROUTER_OWNER',
+    action: 'ROUTER_CREDENTIALS_UPDATED',
+    resource: 'ROUTER',
+    ipAddress: req.ip || '127.0.0.1',
+    timestamp: new Date().toISOString(),
+    result: 'SUCCESS',
+    details: `SSID updated to "${router.networkName}" for router ${router.name} (${router.ipAddress}). Wireless security settings synchronized.`,
+  });
+
+  return res.json({
+    success: true,
+    message: `Network credentials updated for ${router.name}! SSID is now "${router.networkName}".`,
+    router,
+    mikrotikScript,
+  });
+});
+
 // Comprehensive Router Diagnostic Ping & Health Probe
 app.post('/api/owner/routers/diagnostic-ping', (req, res) => {
   const { routerId, targetHost = '8.8.8.8', count = 4, packetSize = 64 } = req.body;
@@ -2441,10 +2070,14 @@ app.get('/api/owner/routers/latency-history', (req, res) => {
 
 // Router Owner: Generate Vouchers (Single or Bulk)
 app.post('/api/owner/vouchers/generate', (req, res) => {
-  const { packageId, quantity, networkName } = req.body;
+  const { packageId, quantity, networkName, downloadSpeedMbps, uploadSpeedMbps } = req.body;
   const pkg = db.wifiPackages.find((p) => p.id === packageId) || db.wifiPackages[3];
   const count = Math.min(Math.max(Number(quantity) || 1, 1), 100);
   const batchNumber = `BATCH-${new Date().toISOString().slice(0, 10)}-${Math.floor(100 + Math.random() * 900)}`;
+
+  const dlSpeed = downloadSpeedMbps ? Number(downloadSpeedMbps) : (pkg.downloadSpeedMbps || 15);
+  const ulSpeed = uploadSpeedMbps ? Number(uploadSpeedMbps) : (pkg.uploadSpeedMbps || 10);
+  const speedLabel = `${dlSpeed} Mbps / ${ulSpeed} Mbps`;
 
   const createdVouchers: Voucher[] = [];
 
@@ -2460,7 +2093,9 @@ app.post('/api/owner/vouchers/generate', (req, res) => {
       packageName: pkg.name,
       durationHours: pkg.durationHours,
       priceKes: pkg.priceKes,
-      speed: pkg.speedLabel,
+      speed: speedLabel,
+      downloadSpeedMbps: dlSpeed,
+      uploadSpeedMbps: ulSpeed,
       network: networkName || 'BRISK Kiambu',
       status: 'UNUSED',
       createdAt: new Date().toISOString(),
@@ -2481,7 +2116,7 @@ app.post('/api/owner/vouchers/generate', (req, res) => {
     ipAddress: req.ip || '127.0.0.1',
     timestamp: new Date().toISOString(),
     result: 'SUCCESS',
-    details: `Generated ${count} vouchers for ${pkg.name}. Batch: ${batchNumber}`,
+    details: `Generated ${count} vouchers for ${pkg.name} (${speedLabel}). Batch: ${batchNumber}`,
   });
 
   return res.json({ success: true, vouchers: createdVouchers, count, batchNumber });
@@ -2728,6 +2363,62 @@ app.post('/api/pppoe/delete', (req, res) => {
 
   const [deleted] = db.pppoeUsers.splice(index, 1);
   return res.json({ success: true, message: `PPPoE subscriber ${deleted.username} deleted successfully.`, subscriber: deleted });
+});
+
+// PPPoE Subscriber Credentials Update (Change Username / WiFi Password)
+app.post(['/api/pppoe/update-credentials', '/api/pppoe/credentials'], (req, res) => {
+  const { id, username, password } = req.body;
+  if (!id) {
+    return res.status(400).json({ error: 'PPPoE subscriber ID is required.' });
+  }
+
+  const subscriber = db.pppoeUsers.find((u) => u.id === id || u.username.toLowerCase() === String(id).toLowerCase().trim());
+  if (!subscriber) {
+    return res.status(404).json({ error: 'PPPoE subscriber not found.' });
+  }
+
+  if (username && String(username).trim()) {
+    subscriber.username = String(username).trim();
+  }
+  if (password && String(password).trim()) {
+    subscriber.password = String(password).trim();
+  }
+
+  // Update in Supabase cloud database if connected
+  supabaseServer
+    .from('pppoe_users')
+    .upsert([
+      {
+        id: subscriber.id,
+        username: subscriber.username,
+        ip_address: subscriber.ipAddress,
+        router_name: subscriber.routerName,
+        speed: subscriber.speed,
+        status: subscriber.status,
+        expires_at: subscriber.expiresAt,
+      },
+    ])
+    .then(({ error }) => {
+      if (error) console.warn('[Supabase Sync] PPPoE credentials update note:', error.message);
+    });
+
+  db.auditLogs.unshift({
+    id: `log-${Date.now()}`,
+    userName: subscriber.username,
+    userRole: 'CUSTOMER',
+    action: 'PPPOE_CREDENTIALS_UPDATED',
+    resource: 'PPPOE',
+    ipAddress: req.ip || '127.0.0.1',
+    timestamp: new Date().toISOString(),
+    result: 'SUCCESS',
+    details: `PPPoE subscriber ${subscriber.username} updated WiFi credentials (Username & Password).`,
+  });
+
+  return res.json({
+    success: true,
+    message: 'WiFi PPPoE username and password updated successfully!',
+    subscriber,
+  });
 });
 
 // PPPoE Subscriber Renewal (M-Pesa payment or manual extension)

@@ -42,12 +42,19 @@ export const PppoeCaptivePortal: React.FC<PppoeCaptivePortalProps> = ({
     price: 1500,
     speed: '15 Mbps',
   });
-  const [mpesaPhone, setMpesaPhone] = useState('0712345678');
+  const [mpesaPhone, setMpesaPhone] = useState('');
   const [transCode, setTransCode] = useState('');
   const [paying, setPaying] = useState(false);
   const [paySuccess, setPaySuccess] = useState('');
   const [payError, setPayError] = useState('');
   const [copiedSetting, setCopiedSetting] = useState(false);
+
+  // Credential Update State
+  const [newUsername, setNewUsername] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [updatingCreds, setUpdatingCreds] = useState(false);
+  const [credSuccess, setCredSuccess] = useState('');
+  const [credError, setCredError] = useState('');
 
   // Available broadband packages for PPPoE renewal
   const broadbandTiers = [
@@ -56,11 +63,6 @@ export const PppoeCaptivePortal: React.FC<PppoeCaptivePortalProps> = ({
     { name: 'Gold Fiber 25 Mbps', price: 2500, speed: '25 Mbps', desc: 'High-speed remote work, Zoom & 4K Netflix' },
     { name: 'Business Dedicated 50 Mbps', price: 4500, speed: '50 Mbps', desc: 'Priority enterprise routing with 99.9% uptime SLA' },
   ];
-
-  // Try auto-loading default demo user or state on mount
-  useEffect(() => {
-    handleSearchUser('mwangi-fiber');
-  }, []);
 
   const handleSearchUser = async (usernameToFind?: string) => {
     const q = (usernameToFind || lookupQuery).trim().toLowerCase();
@@ -88,22 +90,8 @@ export const PppoeCaptivePortal: React.FC<PppoeCaptivePortalProps> = ({
           setMpesaPhone(match.username);
         }
       } else {
-        // Fallback demo profile if backend freshly initialized
-        setSelectedUser({
-          id: `pppoe-${q}`,
-          username: q,
-          ipAddress: '10.10.40.105',
-          status: 'CONNECTED',
-          uptime: '14d 08h 22m',
-          downloadMb: 42800,
-          uploadMb: 11200,
-          macAddress: 'E4:8D:8C:33:91:AA',
-          routerId: 'r-01',
-          routerName: 'Main MikroTik CCR Cloud Core',
-          speed: '15 Mbps',
-          connectedDuration: '14 days',
-          expiresAt: new Date(Date.now() + 30 * 86400000).toISOString(),
-        });
+        setSelectedUser(null);
+        setLookupError(`No active PPPoE subscriber account found for "${q}". Please confirm your account credentials with your ISP host.`);
       }
     } catch (err: any) {
       setLookupError('Could not reach backend billing server. Please check internet connection.');
@@ -297,6 +285,85 @@ export const PppoeCaptivePortal: React.FC<PppoeCaptivePortalProps> = ({
                   <span>Encrypted PPP Tunnel</span>
                 </div>
                 <p>Authenticates via RADIUS / MikroTik local secret. Bandwidth is dynamically shaped via queues.</p>
+              </div>
+
+              {/* Edit PPPoE Username & Password */}
+              <div className="pt-3 border-t border-slate-800 space-y-3">
+                <div className="flex items-center gap-2 text-xs font-bold text-white">
+                  <Lock className="w-3.5 h-3.5 text-amber-400" />
+                  <span>Change PPPoE / WiFi Password</span>
+                </div>
+                {credSuccess && (
+                  <div className="p-2.5 bg-emerald-950/70 border border-emerald-500/40 rounded-xl text-[11px] text-emerald-300 flex items-center gap-1.5">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                    <span>{credSuccess}</span>
+                  </div>
+                )}
+                {credError && (
+                  <div className="p-2.5 bg-red-950/70 border border-red-500/40 rounded-xl text-[11px] text-red-300 flex items-center gap-1.5">
+                    <AlertCircle className="w-3.5 h-3.5 text-red-400 shrink-0" />
+                    <span>{credError}</span>
+                  </div>
+                )}
+                <form
+                  onSubmit={async (e) => {
+                    e.preventDefault();
+                    if (!newUsername.trim() && !newPassword.trim()) {
+                      setCredError('Please enter a new username or password to update.');
+                      return;
+                    }
+                    setUpdatingCreds(true);
+                    setCredError('');
+                    setCredSuccess('');
+                    try {
+                      const res = await api.updatePppoeCredentials({
+                        id: selectedUser.id,
+                        username: newUsername.trim() || undefined,
+                        password: newPassword.trim() || undefined,
+                      });
+                      setCredSuccess(res.message || 'Credentials updated successfully!');
+                      if (newUsername.trim()) {
+                        setSelectedUser((prev) => (prev ? { ...prev, username: newUsername.trim() } : prev));
+                        setNewUsername('');
+                      }
+                      setNewPassword('');
+                    } catch (err: any) {
+                      setCredError(err.message || 'Failed to update credentials.');
+                    } finally {
+                      setUpdatingCreds(false);
+                    }
+                  }}
+                  className="space-y-2 text-xs"
+                >
+                  <div>
+                    <label className="block text-[11px] text-slate-400 mb-1">New Account Username:</label>
+                    <input
+                      type="text"
+                      value={newUsername}
+                      onChange={(e) => setNewUsername(e.target.value)}
+                      placeholder={selectedUser.username}
+                      className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-lg text-white font-mono text-xs focus:outline-none focus:border-amber-400"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[11px] text-slate-400 mb-1">New Router / WiFi Password:</label>
+                    <input
+                      type="password"
+                      value={newPassword}
+                      onChange={(e) => setNewPassword(e.target.value)}
+                      placeholder="Enter new password..."
+                      className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-lg text-white font-mono text-xs focus:outline-none focus:border-amber-400"
+                    />
+                  </div>
+                  <button
+                    type="submit"
+                    disabled={updatingCreds}
+                    className="w-full py-2 bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold text-xs rounded-lg transition-all flex items-center justify-center gap-1.5 shadow-sm disabled:opacity-50"
+                  >
+                    <Lock className="w-3.5 h-3.5" />
+                    <span>{updatingCreds ? 'Saving Changes...' : 'Save WiFi Credentials'}</span>
+                  </button>
+                </form>
               </div>
             </div>
 

@@ -19,9 +19,14 @@ import {
   ChevronRight,
   RefreshCw,
   ExternalLink,
+  Camera,
+  QrCode,
 } from 'lucide-react';
 import type { WifiPackage, Voucher, WifiSession, Transaction } from '../../types/index.ts';
 import { api } from '../../services/api.ts';
+import { QrCodeScannerModal } from '../common/QrCodeScannerModal.tsx';
+import type { ParsedQrResult } from '../../lib/qrParser.ts';
+
 
 interface HotspotPortalProps {
   packages: WifiPackage[];
@@ -115,18 +120,46 @@ export const HotspotPortal: React.FC<HotspotPortalProps> = ({
       deviceLimit: 4,
       description: 'Full month high capacity unlimited broadband hotspot.',
     },
+    {
+      id: 'pkg-tv-monthly',
+      name: 'Smart TV Monthly Stream',
+      category: 'TV',
+      priceKes: 1500,
+      durationHours: 720,
+      durationLabel: '30 Days',
+      downloadSpeedMbps: 20,
+      uploadSpeedMbps: 15,
+      speedLabel: '20 Mbps',
+      deviceLimit: 2,
+      description: 'Dedicated unthrottled streaming pass for Smart TV, Netflix, YouTube 4K & IPTV.',
+    },
+    {
+      id: 'pkg-tv-4k',
+      name: 'Smart TV 4K Ultra Stream',
+      category: 'TV',
+      priceKes: 2500,
+      durationHours: 720,
+      durationLabel: '30 Days',
+      downloadSpeedMbps: 40,
+      uploadSpeedMbps: 30,
+      speedLabel: '40 Mbps',
+      deviceLimit: 3,
+      description: 'Buffer-free 4K/8K streaming for Smart TVs, Apple TV & Gaming Consoles.',
+    },
   ];
 
   const [selectedPkg, setSelectedPkg] = useState<WifiPackage>(
     hotspotPackages.find((p) => p.isPopular) || hotspotPackages[0]
   );
 
-  const [phone, setPhone] = useState('0799123456');
+  const [phone, setPhone] = useState('');
   const [voucherCode, setVoucherCode] = useState('');
   const [voucherError, setVoucherError] = useState('');
   const [voucherLoading, setVoucherLoading] = useState(false);
+  const [isScannerOpen, setIsScannerOpen] = useState(false);
 
   // M-Pesa STK Push Simulation state
+
   const [isPromptingMpesa, setIsPromptingMpesa] = useState(false);
   const [stkPin, setStkPin] = useState('');
   const [isVerifying, setIsVerifying] = useState(false);
@@ -208,7 +241,7 @@ export const HotspotPortal: React.FC<HotspotPortalProps> = ({
         amount: selectedPkg.priceKes,
         type: 'CUSTOMER_WIFI',
         packageId: selectedPkg.id,
-        userId: 'usr-cust-01',
+        userId: phone ? `guest-${phone.slice(-6)}` : 'guest-hotspot',
       });
 
       if (verifyRes.transaction) {
@@ -238,10 +271,10 @@ export const HotspotPortal: React.FC<HotspotPortalProps> = ({
     }
   };
 
-  // Redeem Voucher Code
-  const handleRedeemVoucher = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!voucherCode.trim()) {
+  // Core Voucher Redemption Handler
+  const executeVoucherRedemption = async (codeToRedeem: string) => {
+    const cleanCode = codeToRedeem.trim().toUpperCase();
+    if (!cleanCode) {
       setVoucherError('Please enter a voucher code');
       return;
     }
@@ -250,7 +283,7 @@ export const HotspotPortal: React.FC<HotspotPortalProps> = ({
     setVoucherError('');
 
     try {
-      const res = await api.redeemVoucher(voucherCode.trim().toUpperCase(), 'usr-cust-01');
+      const res = await api.redeemVoucher(cleanCode, 'guest-voucher-user');
       if (res.success && res.voucher) {
         const v = res.voucher;
         const totalSec = (v.durationHours || 24) * 3600;
@@ -276,6 +309,21 @@ export const HotspotPortal: React.FC<HotspotPortalProps> = ({
     }
   };
 
+  const handleRedeemVoucher = async (e: React.FormEvent) => {
+    e.preventDefault();
+    executeVoucherRedemption(voucherCode);
+  };
+
+  const handleQrScan = (parsed: ParsedQrResult) => {
+    const code = parsed.voucherCode || parsed.raw;
+    if (code) {
+      setVoucherCode(code.toUpperCase());
+      setActiveTab('VOUCHER');
+      executeVoucherRedemption(code);
+    }
+  };
+
+
 
   // Format seconds into HH:MM:SS
   const formatTime = (seconds: number) => {
@@ -300,6 +348,16 @@ export const HotspotPortal: React.FC<HotspotPortalProps> = ({
           </div>
 
           <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={() => setIsScannerOpen(true)}
+              className="flex items-center gap-1.5 px-2.5 py-1 bg-amber-400/15 hover:bg-amber-400/25 text-amber-300 border border-amber-400/30 rounded-lg text-[11px] font-bold transition-all shadow-sm"
+              title="Scan Voucher QR Code with Camera"
+            >
+              <Camera className="w-3.5 h-3.5 text-amber-400" />
+              <span>Scan QR</span>
+            </button>
+
             <span className="font-mono text-[11px] text-amber-400 bg-amber-950/60 border border-amber-800/40 px-2 py-0.5 rounded">
               {isConnected ? 'AUTHENTICATED' : 'MIKROTIK CAPTIVE PORTAL'}
             </span>
@@ -310,6 +368,7 @@ export const HotspotPortal: React.FC<HotspotPortalProps> = ({
               Exit to Website
             </button>
           </div>
+
         </div>
       </div>
 
@@ -539,22 +598,48 @@ export const HotspotPortal: React.FC<HotspotPortalProps> = ({
 
               {/* TAB 2: VOUCHER CODE */}
               {activeTab === 'VOUCHER' && (
-                <form onSubmit={handleRedeemVoucher} className="space-y-5">
+                <form onSubmit={handleRedeemVoucher} className="space-y-4">
+                  {/* Camera QR Quick Scan Trigger */}
+                  <button
+                    type="button"
+                    onClick={() => setIsScannerOpen(true)}
+                    className="w-full py-3 px-4 bg-gradient-to-r from-amber-400/20 via-amber-400/10 to-amber-400/20 hover:from-amber-400/30 hover:to-amber-400/30 border border-amber-400/50 hover:border-amber-400 rounded-xl text-amber-300 hover:text-amber-200 font-bold text-xs transition-all flex items-center justify-center gap-2 shadow-lg shadow-amber-400/10"
+                  >
+                    <Camera className="w-4 h-4 text-amber-400" />
+                    <span>Scan Voucher Card with Camera</span>
+                  </button>
+
+                  <div className="relative flex py-0.5 items-center">
+                    <div className="flex-grow border-t border-slate-800"></div>
+                    <span className="flex-shrink mx-2 text-[10px] uppercase font-bold text-slate-500 tracking-wider">or enter PIN manually</span>
+                    <div className="flex-grow border-t border-slate-800"></div>
+                  </div>
+
                   <div className="space-y-2">
                     <label className="block text-xs font-semibold text-slate-300">
                       Enter Voucher PIN / Scratchcard Code:
                     </label>
-                    <input
-                      type="text"
-                      required
-                      value={voucherCode}
-                      onChange={(e) => {
-                        setVoucherCode(e.target.value.toUpperCase());
-                        setVoucherError('');
-                      }}
-                      placeholder="e.g. BRISK-9842"
-                      className="w-full px-4 py-3.5 bg-slate-950 border border-slate-800 focus:border-amber-400 rounded-xl text-white font-mono font-bold tracking-widest text-center text-lg placeholder:text-slate-600 uppercase focus:outline-none"
-                    />
+                    <div className="relative flex items-center">
+                      <input
+                        type="text"
+                        required
+                        value={voucherCode}
+                        onChange={(e) => {
+                          setVoucherCode(e.target.value.toUpperCase());
+                          setVoucherError('');
+                        }}
+                        placeholder="e.g. BRISK-9842"
+                        className="w-full pl-4 pr-12 py-3.5 bg-slate-950 border border-slate-800 focus:border-amber-400 rounded-xl text-white font-mono font-bold tracking-widest text-center text-lg placeholder:text-slate-600 uppercase focus:outline-none"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setIsScannerOpen(true)}
+                        className="absolute right-3 p-1.5 text-slate-400 hover:text-amber-400 transition-colors"
+                        title="Scan with Camera"
+                      >
+                        <QrCode className="w-5 h-5" />
+                      </button>
+                    </div>
 
                     {voucherError && (
                       <div className="p-3 bg-red-950/60 border border-red-800/80 rounded-xl text-xs text-red-300 flex items-center gap-2">
@@ -563,8 +648,6 @@ export const HotspotPortal: React.FC<HotspotPortalProps> = ({
                       </div>
                     )}
                   </div>
-
-
 
                   <button
                     type="submit"
@@ -664,6 +747,16 @@ export const HotspotPortal: React.FC<HotspotPortalProps> = ({
       <div className="py-3 px-4 text-center text-[11px] text-slate-500 border-t border-slate-900">
         BRISK Smart Connect · MikroTik Hotspot & PPPoE Billing Engine · Nairobi, Kenya
       </div>
+
+      {/* Camera QR Code Scanner Modal */}
+      <QrCodeScannerModal
+        isOpen={isScannerOpen}
+        onClose={() => setIsScannerOpen(false)}
+        onScan={handleQrScan}
+        title="Scan WiFi Hotspot or Voucher QR"
+        hint="Point camera at your printed voucher, receipt, or WiFi QR card"
+      />
     </div>
   );
 };
+

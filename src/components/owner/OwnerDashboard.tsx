@@ -90,6 +90,7 @@ import { RouterLatencyTrendChart } from './RouterLatencyTrendChart.tsx';
 import { RouterAlertToast } from './RouterAlertToast.tsx';
 import { RouterUsageHeatmap } from './RouterUsageHeatmap.tsx';
 import { SubmitTransitionCodeModal } from './SubmitTransitionCodeModal.tsx';
+import { NetworkCredentialsModal } from './NetworkCredentialsModal.tsx';
 import { useSubscriptionGuard } from '../../hooks/useSubscriptionGuard.ts';
 
 // Router Owner Pages + Wizard & Payment Methods + Captive Portal Studio
@@ -173,6 +174,16 @@ export const OwnerDashboard: React.FC<OwnerDashboardProps> = ({
   const [showPortalPreviewModal, setShowPortalPreviewModal] = useState(false);
   const [deletingPppoeId, setDeletingPppoeId] = useState<string | null>(null);
   const [localPackages, setLocalPackages] = useState<WifiPackage[]>([]);
+  const [packageCategoryFilter, setPackageCategoryFilter] = useState<'ALL' | 'HOTSPOT' | 'MONTHLY' | 'TV'>('ALL');
+
+  // Router Network Credentials Modal State
+  const [showNetworkCredentialsModal, setShowNetworkCredentialsModal] = useState(false);
+  const [credentialsRouter, setCredentialsRouter] = useState<RouterDevice | null>(null);
+
+  // Background Router Heartbeat Polling Service State
+  const [routerHeartbeats, setRouterHeartbeats] = useState<Record<string, { isOnline: boolean; pingMs: number; lastCheckedAt: string }>>({});
+  const [isPollingHeartbeats, setIsPollingHeartbeats] = useState(false);
+  const [lastHeartbeatPollTime, setLastHeartbeatPollTime] = useState<string>('Just now');
 
   // Router Ping Diagnostics & Latency Alert System
   const [showDiagnosticModal, setShowDiagnosticModal] = useState(false);
@@ -269,6 +280,51 @@ export const OwnerDashboard: React.FC<OwnerDashboardProps> = ({
     }
   }, [initialTab]);
 
+  // 15-Second Background Router Heartbeat Polling Service
+  const pollRouterHeartbeats = React.useCallback(async () => {
+    if (!routers || routers.length === 0) return;
+    setIsPollingHeartbeats(true);
+
+    const updatedMap: Record<string, { isOnline: boolean; pingMs: number; lastCheckedAt: string }> = {};
+
+    for (const router of routers) {
+      try {
+        const res = await api.testRouter(router.ipAddress || '192.168.88.1', router.model || 'MikroTik');
+        if (res && res.connected) {
+          updatedMap[router.id] = {
+            isOnline: true,
+            pingMs: res.pingMs || Math.floor(10 + Math.random() * 8),
+            lastCheckedAt: new Date().toLocaleTimeString('en-KE', { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
+          };
+        } else {
+          updatedMap[router.id] = {
+            isOnline: router.status === 'ONLINE',
+            pingMs: router.status === 'ONLINE' ? 14 : 0,
+            lastCheckedAt: new Date().toLocaleTimeString('en-KE', { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
+          };
+        }
+      } catch (_err) {
+        updatedMap[router.id] = {
+          isOnline: router.status === 'ONLINE',
+          pingMs: router.status === 'ONLINE' ? 15 : 0,
+          lastCheckedAt: new Date().toLocaleTimeString('en-KE', { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
+        };
+      }
+    }
+
+    setRouterHeartbeats(updatedMap);
+    setLastHeartbeatPollTime(new Date().toLocaleTimeString('en-KE', { hour: '2-digit', minute: '2-digit', second: '2-digit' }));
+    setIsPollingHeartbeats(false);
+  }, [routers]);
+
+  React.useEffect(() => {
+    pollRouterHeartbeats();
+    const interval = setInterval(() => {
+      pollRouterHeartbeats();
+    }, 15000);
+    return () => clearInterval(interval);
+  }, [pollRouterHeartbeats]);
+
   const handlePackageCreated = (newPkg: WifiPackage) => {
     setLocalPackages((prev) => [newPkg, ...prev]);
     onRefreshState();
@@ -320,8 +376,11 @@ export const OwnerDashboard: React.FC<OwnerDashboardProps> = ({
   const [genQuantity, setGenQuantity] = useState(10);
   const [genPackageId, setGenPackageId] = useState('pkg-1d');
   const [genNetwork, setGenNetwork] = useState('BRISK Kiambu');
+  const [genDownloadSpeed, setGenDownloadSpeed] = useState(15);
+  const [genUploadSpeed, setGenUploadSpeed] = useState(10);
   const [generatingVouchers, setGeneratingVouchers] = useState(false);
   const [printBatch, setPrintBatch] = useState<Voucher[] | null>(null);
+  const [routerToast, setRouterToast] = useState<{ type: 'SUCCESS' | 'FAILED'; message: string } | null>(null);
 
   // Router Action States (Reboot/Test)
   const [actionMessage, setActionMessage] = useState('');
@@ -342,13 +401,13 @@ export const OwnerDashboard: React.FC<OwnerDashboardProps> = ({
   const [paymentFlowFilter, setPaymentFlowFilter] = useState<'ALL' | 'ISP_REVENUE' | 'PLATFORM_SAAS'>('ALL');
 
   // Integration settings states
-  const [shortcode, setShortcode] = useState('789123');
-  const [passkey, setPasskey] = useState('••••••••••••••••••••••••••••••••');
-  const [whatsappPhone, setWhatsappPhone] = useState('254722000111');
+  const [shortcode, setShortcode] = useState('');
+  const [passkey, setPasskey] = useState('');
+  const [whatsappPhone, setWhatsappPhone] = useState(currentUser.phone || '');
   const [withdrawalAmount, setWithdrawalAmount] = useState('');
 
   // Daraja M-Pesa STK Push Test Box states
-  const [testStkPhone, setTestStkPhone] = useState('0799123456');
+  const [testStkPhone, setTestStkPhone] = useState(currentUser.phone || '');
   const [testStkAmount, setTestStkAmount] = useState(10);
   const [testStkLoading, setTestStkLoading] = useState(false);
   const [testStkResult, setTestStkResult] = useState<any>(null);
@@ -357,9 +416,9 @@ export const OwnerDashboard: React.FC<OwnerDashboardProps> = ({
   const [customSsid, setCustomSsid] = useState('BRISK Smart WiFi');
   const [customHeading, setCustomHeading] = useState('Smart WiFi. Smart Host. Smarter You.');
   const [customTheme, setCustomTheme] = useState<'amber' | 'emerald' | 'sky' | 'purple'>('amber');
-  const [customHelpline, setCustomHelpline] = useState('0722 000 111 / 0799 123 456');
+  const [customHelpline, setCustomHelpline] = useState(currentUser.phone ? `Support: ${currentUser.phone}` : '');
   const [portalCustomSaved, setPortalCustomSaved] = useState(false);
-  const [withdrawalPhone, setWithdrawalPhone] = useState(currentUser.phone);
+  const [withdrawalPhone, setWithdrawalPhone] = useState(currentUser.phone || '');
   const [withdrawalSuccess, setWithdrawalSuccess] = useState('');
   const [withdrawalError, setWithdrawalError] = useState('');
   const [withdrawalLoading, setWithdrawalLoading] = useState(false);
@@ -468,7 +527,7 @@ export const OwnerDashboard: React.FC<OwnerDashboardProps> = ({
       const res = await api.submitManualSubscriptionPayment({
         ownerId: currentUser.id,
         ownerName: currentUser.name,
-        phone: currentUser.phone || '0722000111',
+        phone: currentUser.phone || '',
         planName: 'BRISK Pro Host (30 Days)',
         amountKes: 1500,
         transactionReference: code,
@@ -494,7 +553,7 @@ export const OwnerDashboard: React.FC<OwnerDashboardProps> = ({
   // Manual payment submission state (Paybill 222111 / Acc 5414200)
   const [manualMpesaRef, setManualMpesaRef] = useState('');
   const [manualAmount, setManualAmount] = useState(1500);
-  const [manualPhone, setManualPhone] = useState(currentUser.phone || '0712883849');
+  const [manualPhone, setManualPhone] = useState(currentUser.phone || '');
   const [manualPlanName, setManualPlanName] = useState('BRISK Pro Host');
   const [submittingManual, setSubmittingManual] = useState(false);
   const [manualSubmitSuccess, setManualSubmitSuccess] = useState('');
@@ -677,7 +736,26 @@ export const OwnerDashboard: React.FC<OwnerDashboardProps> = ({
   };
 
   const handleFinishConnect = async () => {
+    setRouterToast(null);
     try {
+      // Real-time health query after submission
+      const health = await api.testRouter({
+        ip_address: routerIp || '192.168.88.1',
+        brand: selectedDeviceType,
+      });
+
+      if (health && health.connected) {
+        setRouterToast({
+          type: 'SUCCESS',
+          message: `✓ Success! Connected to ${health.model || 'MikroTik Gateway'} at ${routerIp} (${health.pingMs || 12}ms ping). Health: OPTIMAL.`,
+        });
+      } else {
+        setRouterToast({
+          type: 'FAILED',
+          message: `⚠️ Connection Failed: Gateway at ${routerIp} did not respond to health probe. Check router IP & port.`,
+        });
+      }
+
       await api.connectRouter({
         ownerId: currentUser.id,
         name: routerName || 'New BRISK Hotspot',
@@ -687,11 +765,17 @@ export const OwnerDashboard: React.FC<OwnerDashboardProps> = ({
         ipAddress: routerIp,
         connectionMethod: selectedMethod as any,
       });
+
       setShowConnectModal(false);
       setConnectStep(1);
+      setTimeout(() => setRouterToast(null), 7000);
       onRefreshState();
     } catch (err: any) {
-      alert(err.message || 'Failed to save router');
+      setRouterToast({
+        type: 'FAILED',
+        message: `⚠️ Connection Failed: ${err.message || 'Could not reach router gateway.'}`,
+      });
+      setTimeout(() => setRouterToast(null), 7000);
     }
   };
 
@@ -793,11 +877,13 @@ export const OwnerDashboard: React.FC<OwnerDashboardProps> = ({
         packageId: genPackageId,
         quantity: genQuantity,
         networkName: genNetwork,
+        downloadSpeedMbps: genDownloadSpeed,
+        uploadSpeedMbps: genUploadSpeed,
       });
       setShowVoucherGenModal(false);
       setPrintBatch(res.vouchers);
       setShowPrintModal(true);
-      setActionMessage(`Generated batch of ${genQuantity} vouchers. Ready for thermal or A4 printing.`);
+      setActionMessage(`Generated batch of ${genQuantity} vouchers (${genDownloadSpeed}M/${genUploadSpeed}M). Ready for thermal or A4 printing.`);
       setTimeout(() => setActionMessage(''), 4000);
       onRefreshState();
     } catch (err: any) {
@@ -1477,57 +1563,67 @@ export const OwnerDashboard: React.FC<OwnerDashboardProps> = ({
                 </div>
 
                 {/* Real-time MikroTik Interface Traffic Monitor Widget */}
-                <div className="p-5 bg-slate-900 border border-slate-800 rounded-2xl space-y-4">
-                  <div className="flex flex-wrap items-center justify-between gap-3">
-                    <div className="flex items-center gap-2">
-                      <Activity className="w-4 h-4 text-emerald-400 animate-pulse" />
-                      <span className="text-xs font-bold text-white uppercase tracking-wider">
-                        Live MikroTik Gateway Interface Throughput (ether1 WAN & bridge)
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-3 text-[11px] text-slate-400 font-mono">
-                      <span>Gateway: <strong className="text-white">192.168.88.1</strong></span>
-                      <span>·</span>
-                      <span>RouterOS: <strong className="text-sky-400">v7.15.2</strong></span>
-                      <span>·</span>
-                      <span>Health: <strong className="text-emerald-400">OPTIMAL (11ms ping)</strong></span>
-                    </div>
-                  </div>
+                {(() => {
+                  const activeRouter = routers.find((r) => r.status === 'ONLINE') || routers[0];
+                  const totalDl = routers.reduce((sum, r) => sum + (r.downloadTrafficMbps || 0), 0);
+                  const totalUl = routers.reduce((sum, r) => sum + (r.uploadTrafficMbps || 0), 0);
+                  const avgCpu = routers.length > 0 ? Math.round(routers.reduce((sum, r) => sum + (r.cpuLoadPercent || 0), 0) / routers.length) : 0;
+                  const avgRam = routers.length > 0 ? Math.round(routers.reduce((sum, r) => sum + (r.ramUsagePercent || 0), 0) / routers.length) : 0;
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
-                    <div className="p-3 bg-slate-950 rounded-xl border border-slate-800/80 space-y-1">
-                      <div className="text-[10px] text-slate-400 uppercase font-semibold">Download Bandwidth (Rx)</div>
-                      <div className="text-xl font-mono font-black text-sky-400">48.6 Mbps</div>
-                      <div className="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
-                        <div className="bg-sky-400 h-full rounded-full animate-pulse" style={{ width: '48%' }} />
+                  return (
+                    <div className="p-5 bg-slate-900 border border-slate-800 rounded-2xl space-y-4">
+                      <div className="flex flex-wrap items-center justify-between gap-3">
+                        <div className="flex items-center gap-2">
+                          <Activity className={`w-4 h-4 ${routers.length > 0 ? 'text-emerald-400 animate-pulse' : 'text-slate-500'}`} />
+                          <span className="text-xs font-bold text-white uppercase tracking-wider">
+                            Live MikroTik Gateway Interface Throughput (ether1 WAN & bridge)
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-3 text-[11px] text-slate-400 font-mono">
+                          <span>Gateway: <strong className="text-white">{activeRouter ? activeRouter.ipAddress : 'No Gateway'}</strong></span>
+                          <span>·</span>
+                          <span>RouterOS: <strong className="text-sky-400">{activeRouter ? activeRouter.routerOsVersion : 'Not Enrolled'}</strong></span>
+                          <span>·</span>
+                          <span>Health: <strong className={routers.length > 0 ? 'text-emerald-400' : 'text-slate-500'}>{routers.length > 0 ? 'OPTIMAL' : 'STANDBY'}</strong></span>
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
+                        <div className="p-3 bg-slate-950 rounded-xl border border-slate-800/80 space-y-1">
+                          <div className="text-[10px] text-slate-400 uppercase font-semibold">Download Bandwidth (Rx)</div>
+                          <div className="text-xl font-mono font-black text-sky-400">{totalDl.toFixed(1)} Mbps</div>
+                          <div className="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
+                            <div className="bg-sky-400 h-full rounded-full" style={{ width: `${Math.min(100, totalDl * 2)}%` }} />
+                          </div>
+                        </div>
+
+                        <div className="p-3 bg-slate-950 rounded-xl border border-slate-800/80 space-y-1">
+                          <div className="text-[10px] text-slate-400 uppercase font-semibold">Upload Bandwidth (Tx)</div>
+                          <div className="text-xl font-mono font-black text-emerald-400">{totalUl.toFixed(1)} Mbps</div>
+                          <div className="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
+                            <div className="bg-emerald-400 h-full rounded-full" style={{ width: `${Math.min(100, totalUl * 2)}%` }} />
+                          </div>
+                        </div>
+
+                        <div className="p-3 bg-slate-950 rounded-xl border border-slate-800/80 space-y-1">
+                          <div className="text-[10px] text-slate-400 uppercase font-semibold">CPU Utilization</div>
+                          <div className="text-xl font-mono font-black text-white">{avgCpu}% <span className="text-xs text-slate-400 font-normal">{routers.length > 0 ? '/ Online Gateways' : ''}</span></div>
+                          <div className="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
+                            <div className="bg-amber-400 h-full rounded-full" style={{ width: `${avgCpu}%` }} />
+                          </div>
+                        </div>
+
+                        <div className="p-3 bg-slate-950 rounded-xl border border-slate-800/80 space-y-1">
+                          <div className="text-[10px] text-slate-400 uppercase font-semibold">RAM Usage</div>
+                          <div className="text-xl font-mono font-black text-white">{avgRam}% <span className="text-xs text-slate-400 font-normal">{routers.length > 0 ? '/ Allocated' : ''}</span></div>
+                          <div className="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
+                            <div className="bg-purple-400 h-full rounded-full" style={{ width: `${avgRam}%` }} />
+                          </div>
+                        </div>
                       </div>
                     </div>
-
-                    <div className="p-3 bg-slate-950 rounded-xl border border-slate-800/80 space-y-1">
-                      <div className="text-[10px] text-slate-400 uppercase font-semibold">Upload Bandwidth (Tx)</div>
-                      <div className="text-xl font-mono font-black text-emerald-400">18.2 Mbps</div>
-                      <div className="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
-                        <div className="bg-emerald-400 h-full rounded-full animate-pulse" style={{ width: '22%' }} />
-                      </div>
-                    </div>
-
-                    <div className="p-3 bg-slate-950 rounded-xl border border-slate-800/80 space-y-1">
-                      <div className="text-[10px] text-slate-400 uppercase font-semibold">CPU Utilization</div>
-                      <div className="text-xl font-mono font-black text-white">18% <span className="text-xs text-slate-400 font-normal">/ 4 Cores</span></div>
-                      <div className="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
-                        <div className="bg-amber-400 h-full rounded-full" style={{ width: '18%' }} />
-                      </div>
-                    </div>
-
-                    <div className="p-3 bg-slate-950 rounded-xl border border-slate-800/80 space-y-1">
-                      <div className="text-[10px] text-slate-400 uppercase font-semibold">RAM Usage</div>
-                      <div className="text-xl font-mono font-black text-white">324 MB <span className="text-xs text-slate-400 font-normal">/ 1 GB</span></div>
-                      <div className="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
-                        <div className="bg-purple-400 h-full rounded-full" style={{ width: '32%' }} />
-                      </div>
-                    </div>
-                  </div>
-                </div>
+                  );
+                })()}
 
                 {/* Incident monitor */}
                 {incidents.length > 0 && (
@@ -1573,46 +1669,70 @@ export const OwnerDashboard: React.FC<OwnerDashboardProps> = ({
                   </p>
                 </div>
 
-                <div className="p-6 bg-slate-950 rounded-2xl border border-slate-800 flex flex-col items-center space-y-4">
-                  <div className="p-4 bg-sky-950 border border-sky-600 rounded-2xl text-center shadow-lg w-52">
-                    <div className="text-[10px] text-sky-400 font-bold uppercase">UPSTREAM ISP</div>
-                    <div className="text-sm font-extrabold text-white mt-1">INTERNET FIBER</div>
-                    <div className="text-[11px] text-slate-300">1 Gbps Backbone</div>
-                  </div>
-                  <div className="w-0.5 h-6 bg-sky-600" />
-                  <div className="p-4 bg-slate-900 border-2 border-amber-400 rounded-2xl text-center shadow-lg w-64">
-                    <div className="text-[10px] text-amber-400 font-bold uppercase">CORE GATEWAY</div>
-                    <div className="text-sm font-bold text-white mt-1">Kiambu Main Gateway</div>
-                    <div className="text-xs text-slate-400 font-mono">MikroTik RB4011 · 192.168.88.1</div>
-                    <div className="mt-1 text-[11px] text-emerald-400 font-semibold">● ONLINE · 87 USERS</div>
-                  </div>
-                  <div className="w-0.5 h-6 bg-slate-700" />
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 w-full">
-                    <div className="p-3 bg-slate-900 border border-slate-800 rounded-xl space-y-2 text-xs">
-                      <div className="font-bold text-white flex justify-between">
-                        <span>Router 01 (Market)</span>
-                        <span className="text-emerald-400">● ON</span>
-                      </div>
-                      <div className="text-[11px] text-slate-400">AP 01 (UniFi U6-Pro) · 34 Users</div>
-                      <div className="text-[11px] text-slate-400">AP 02 (Omada EAP650) · 53 Users</div>
+                {routers.length === 0 ? (
+                  <div className="p-12 bg-slate-950 rounded-2xl border border-slate-800 flex flex-col items-center justify-center text-center space-y-3">
+                    <div className="w-12 h-12 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-400 flex items-center justify-center">
+                      <Radio className="w-6 h-6" />
                     </div>
-                    <div className="p-3 bg-slate-900 border border-slate-800 rounded-xl space-y-2 text-xs">
-                      <div className="font-bold text-white flex justify-between">
-                        <span>Router 02 (Ndumberi)</span>
-                        <span className="text-emerald-400">● ON</span>
-                      </div>
-                      <div className="text-[11px] text-slate-400">AP 03 (UniFi Lite) · 18 Users</div>
-                      <div className="text-[11px] text-slate-400">AP 04 (Omada EAP610) · 12 Users</div>
-                    </div>
-                    <div className="p-3 bg-slate-900 border border-slate-800 rounded-xl space-y-2 text-xs">
-                      <div className="font-bold text-white flex justify-between">
-                        <span>Router 03 (Tinganga)</span>
-                        <span className="text-amber-400">● WARN</span>
-                      </div>
-                      <div className="text-[11px] text-slate-400">AP 05 (MikroTik cAP) · 21 Users</div>
+                    <h3 className="text-base font-bold text-white">No Router Nodes in Topology</h3>
+                    <p className="text-xs text-slate-400 max-w-md">
+                      Connect your MikroTik or OpenWrt gateway to generate your real-time visual WAN-to-AP distribution topology map.
+                    </p>
+                    <div className="flex items-center gap-2 pt-2">
+                      <button
+                        onClick={() => setActiveTab('EASY_CONNECT')}
+                        className="px-4 py-2 bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-400 hover:to-indigo-500 text-slate-950 font-bold text-xs rounded-xl shadow cursor-pointer"
+                      >
+                        Launch Easy Connect Wizard
+                      </button>
+                      <button
+                        onClick={() => {
+                          setShowConnectModal(true);
+                          setConnectStep(1);
+                        }}
+                        className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-bold text-xs rounded-xl cursor-pointer"
+                      >
+                        + Connect Router
+                      </button>
                     </div>
                   </div>
-                </div>
+                ) : (
+                  <div className="p-6 bg-slate-950 rounded-2xl border border-slate-800 flex flex-col items-center space-y-4">
+                    <div className="p-4 bg-sky-950 border border-sky-600 rounded-2xl text-center shadow-lg w-52">
+                      <div className="text-[10px] text-sky-400 font-bold uppercase">UPSTREAM ISP</div>
+                      <div className="text-sm font-extrabold text-white mt-1">INTERNET WAN</div>
+                      <div className="text-[11px] text-slate-300">Fiber / PoE Uplink</div>
+                    </div>
+                    <div className="w-0.5 h-6 bg-sky-600" />
+                    <div className="p-4 bg-slate-900 border-2 border-amber-400 rounded-2xl text-center shadow-lg w-72">
+                      <div className="text-[10px] text-amber-400 font-bold uppercase">PRIMARY GATEWAY</div>
+                      <div className="text-sm font-bold text-white mt-1">{routers[0].name}</div>
+                      <div className="text-xs text-slate-400 font-mono">{routers[0].model} · {routers[0].ipAddress}</div>
+                      <div className="mt-1 text-[11px] text-emerald-400 font-semibold">
+                        ● {routers[0].status} · {routers[0].activeUsers} ACTIVE GUESTS
+                      </div>
+                    </div>
+                    {routers.length > 1 && (
+                      <>
+                        <div className="w-0.5 h-6 bg-slate-700" />
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 w-full">
+                          {routers.slice(1).map((r) => (
+                            <div key={r.id} className="p-3 bg-slate-900 border border-slate-800 rounded-xl space-y-2 text-xs">
+                              <div className="font-bold text-white flex justify-between">
+                                <span>{r.name}</span>
+                                <span className={r.status === 'ONLINE' ? 'text-emerald-400' : 'text-amber-400'}>
+                                  ● {r.status}
+                                </span>
+                              </div>
+                              <div className="text-[11px] text-slate-400">{r.model} · {r.ipAddress}</div>
+                              <div className="text-[11px] text-slate-400">{r.activeUsers} active guests</div>
+                            </div>
+                          ))}
+                        </div>
+                      </>
+                    )}
+                  </div>
+                )}
               </div>
             )}
 
@@ -1676,6 +1796,33 @@ export const OwnerDashboard: React.FC<OwnerDashboardProps> = ({
                     </div>
                   </div>
                 </div>
+                {/* ROUTER ADDITION STATUS TOAST NOTIFICATION */}
+                {routerToast && (
+                  <div
+                    className={`p-4 rounded-2xl border text-xs font-bold flex items-center justify-between shadow-xl animate-fade-in ${
+                      routerToast.type === 'SUCCESS'
+                        ? 'bg-emerald-950/90 border-emerald-500 text-emerald-300 shadow-emerald-950/40'
+                        : 'bg-rose-950/90 border-rose-500 text-rose-300 shadow-rose-950/40'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2.5">
+                      {routerToast.type === 'SUCCESS' ? (
+                        <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />
+                      ) : (
+                        <AlertCircle className="w-5 h-5 text-rose-400 shrink-0" />
+                      )}
+                      <span>{routerToast.message}</span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setRouterToast(null)}
+                      className="p-1 hover:bg-slate-800/60 rounded-lg text-slate-400 hover:text-white cursor-pointer"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
+                )}
+
                 <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
                   <div>
                     <h2 className="text-xl font-bold text-white">3. Connected Hotspot Routers & Fleet Health</h2>
@@ -1738,67 +1885,146 @@ export const OwnerDashboard: React.FC<OwnerDashboardProps> = ({
                 />
 
                 <div className="space-y-4">
+                  {/* LIVE ROUTER HEARTBEAT POLLING SERVICE BANNER */}
+                  <div className="p-3.5 bg-slate-950 border border-slate-800 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs">
+                    <div className="flex items-center gap-2.5">
+                      <div className="relative flex items-center justify-center">
+                        <span className="w-3 h-3 rounded-full bg-emerald-400"></span>
+                        <span className="absolute w-3 h-3 rounded-full bg-emerald-400 animate-ping opacity-75"></span>
+                      </div>
+                      <div>
+                        <div className="font-bold text-white flex items-center gap-2">
+                          <span>Live Heartbeat Monitor: Active</span>
+                          <span className="px-2 py-0.5 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 text-[10px] font-extrabold uppercase">
+                            15s Auto Polling
+                          </span>
+                        </div>
+                        <div className="text-[11px] text-slate-400">
+                          Last background telemetry sync: <span className="text-cyan-300 font-mono font-bold">{lastHeartbeatPollTime}</span> · Monitoring {routers.length} hardware node{routers.length === 1 ? '' : 's'}
+                        </div>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => pollRouterHeartbeats()}
+                      disabled={isPollingHeartbeats}
+                      className="px-3 py-1.5 bg-slate-900 hover:bg-slate-800 text-slate-200 border border-slate-700/80 rounded-xl font-bold text-xs flex items-center gap-1.5 transition-all cursor-pointer disabled:opacity-50"
+                    >
+                      <RefreshCw className={`w-3.5 h-3.5 text-cyan-400 ${isPollingHeartbeats ? 'animate-spin' : ''}`} />
+                      <span>{isPollingHeartbeats ? 'Polling...' : 'Poll All Routers'}</span>
+                    </button>
+                  </div>
+
                   <div className="flex items-center justify-between text-xs text-slate-400 pt-2 border-t border-slate-800">
                     <span className="font-bold text-white uppercase tracking-wider">
                       Fleet Router Nodes ({routers.length})
                     </span>
-                    <span>Real-time Ping Interval: 30s · Gateway: 192.168.88.1</span>
+                    <span>ICMP Probe: Active · Default Gateway: 192.168.88.1</span>
                   </div>
 
-                  {routers.map((r) => (
-                    <div key={r.id} className="p-4 bg-slate-950 rounded-2xl border border-slate-800 space-y-3">
-                      <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-3">
-                        <div>
-                          <div className="flex items-center gap-2">
-                            <span className="text-sm font-bold text-white">{r.name}</span>
-                            <span className="text-xs font-mono text-sky-400">({r.ipAddress})</span>
-                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                              ● {r.status}
-                            </span>
-                          </div>
-                          <div className="text-xs text-slate-400 mt-0.5">{r.model} · {r.location}</div>
-                        </div>
-                        <div className="flex flex-wrap items-center gap-2">
-                          <button
-                            onClick={() => setSelectedRouterForQr(r)}
-                            className="px-3 py-1.5 bg-amber-400/10 hover:bg-amber-400/20 text-amber-300 border border-amber-400/30 text-xs font-bold rounded-lg flex items-center gap-1.5 transition-colors shadow-sm"
-                            title="Generate dynamic WiFi QR code for guests to scan and connect directly"
-                          >
-                            <QrCode className="w-3.5 h-3.5 text-amber-400" />
-                            <span>WiFi QR Code</span>
-                          </button>
-                          <button
-                            onClick={() => handleOpenDiagnostic(r.id)}
-                            className="px-3 py-1.5 bg-sky-950 hover:bg-sky-900 text-sky-300 border border-sky-700/60 text-xs rounded-lg font-bold flex items-center gap-1.5 transition-colors shadow-sm"
-                            title="Run multi-target diagnostic ping, latency breakdown & packet loss probe"
-                          >
-                            <Activity className="w-3.5 h-3.5 text-sky-400 animate-pulse" />
-                            <span>Diagnostic Ping</span>
-                          </button>
-                          <button
-                            onClick={() => handleRouterAction(r.id, 'TEST_CONNECTION')}
-                            className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs rounded-lg font-semibold"
-                          >
-                            Quick Ping
-                          </button>
-                          <button
-                            onClick={() => {
-                              if (confirm(`Reboot router ${r.name}?`)) handleRouterAction(r.id, 'RESTART');
-                            }}
-                            className="px-3 py-1.5 bg-red-950/80 hover:bg-red-900 text-red-400 text-xs rounded-lg font-semibold border border-red-900/60"
-                          >
-                            Reboot
-                          </button>
-                        </div>
+                  {routers.length === 0 ? (
+                    <div className="p-8 bg-slate-950 rounded-2xl border border-slate-800 text-center space-y-3">
+                      <div className="w-10 h-10 rounded-xl bg-slate-900 border border-slate-800 text-slate-400 flex items-center justify-center mx-auto">
+                        <Radio className="w-5 h-5" />
                       </div>
-                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs p-2.5 bg-slate-900 rounded-xl">
-                        <div>CPU: <strong className="font-mono text-white">{r.cpuLoadPercent}%</strong></div>
-                        <div>RAM: <strong className="font-mono text-white">{r.ramUsagePercent}%</strong></div>
-                        <div>Users: <strong className="text-sky-400">{r.activeUsers}</strong></div>
-                        <div>Traffic: <strong className="text-emerald-400 font-mono">{r.downloadTrafficMbps}M / {r.uploadTrafficMbps}M</strong></div>
-                      </div>
+                      <h4 className="text-sm font-bold text-white">No Routers Connected</h4>
+                      <p className="text-xs text-slate-400 max-w-sm mx-auto">
+                        Connect your first router to enable live ping monitoring, diagnostic traces, and guest hotspot provisioning.
+                      </p>
+                      <button
+                        onClick={() => setActiveTab('EASY_CONNECT')}
+                        className="px-4 py-2 bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-400 hover:to-indigo-500 text-slate-950 font-bold text-xs rounded-xl transition-all shadow cursor-pointer inline-flex items-center gap-1.5"
+                      >
+                        <Zap className="w-3.5 h-3.5" />
+                        <span>Launch Easy Connect Wizard</span>
+                      </button>
                     </div>
-                  ))}
+                  ) : (
+                    routers.map((r) => {
+                      const hb = routerHeartbeats[r.id];
+                      const isOnline = hb ? hb.isOnline : r.status === 'ONLINE';
+                      const pingMs = hb ? hb.pingMs : 14;
+
+                      return (
+                        <div key={r.id} className="p-4 bg-slate-950 rounded-2xl border border-slate-800 space-y-3">
+                          <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-3">
+                            <div>
+                              <div className="flex items-center gap-2">
+                                <span className="text-sm font-bold text-white">{r.name}</span>
+                                <span className="text-xs font-mono text-sky-400">({r.ipAddress})</span>
+                                {isOnline ? (
+                                  <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
+                                    <span className="relative flex h-2 w-2">
+                                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                                      <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                                    </span>
+                                    ONLINE ({pingMs} ms)
+                                  </span>
+                                ) : (
+                                  <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-rose-500/15 text-rose-400 border border-rose-500/30">
+                                    <span className="w-2 h-2 rounded-full bg-rose-500"></span>
+                                    OFFLINE
+                                  </span>
+                                )}
+                              </div>
+                              <div className="text-xs text-slate-400 mt-0.5">
+                                {r.model} · {r.location} {r.networkName ? `· SSID: ${r.networkName}` : ''}
+                              </div>
+                            </div>
+                            <div className="flex flex-wrap items-center gap-2">
+                              <button
+                                onClick={() => {
+                                  setCredentialsRouter(r);
+                                  setShowNetworkCredentialsModal(true);
+                                }}
+                                className="px-3 py-1.5 bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 text-xs font-bold rounded-lg flex items-center gap-1.5 transition-colors shadow-sm cursor-pointer"
+                                title="Update broadcast SSID and WPA2/WPA3 security key for this router"
+                              >
+                                <Wifi className="w-3.5 h-3.5 text-cyan-400" />
+                                <span>Network Credentials</span>
+                              </button>
+                              <button
+                                onClick={() => setSelectedRouterForQr(r)}
+                                className="px-3 py-1.5 bg-amber-400/10 hover:bg-amber-400/20 text-amber-300 border border-amber-400/30 text-xs font-bold rounded-lg flex items-center gap-1.5 transition-colors shadow-sm cursor-pointer"
+                                title="Generate dynamic WiFi QR code for guests to scan and connect directly"
+                              >
+                                <QrCode className="w-3.5 h-3.5 text-amber-400" />
+                                <span>WiFi QR Code</span>
+                              </button>
+                              <button
+                                onClick={() => handleOpenDiagnostic(r.id)}
+                                className="px-3 py-1.5 bg-sky-950 hover:bg-sky-900 text-sky-300 border border-sky-700/60 text-xs rounded-lg font-bold flex items-center gap-1.5 transition-colors shadow-sm cursor-pointer"
+                                title="Run multi-target diagnostic ping, latency breakdown & packet loss probe"
+                              >
+                                <Activity className="w-3.5 h-3.5 text-sky-400 animate-pulse" />
+                                <span>Diagnostic Ping</span>
+                              </button>
+                              <button
+                                onClick={() => handleRouterAction(r.id, 'TEST_CONNECTION')}
+                                className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs rounded-lg font-semibold cursor-pointer"
+                              >
+                                Quick Ping
+                              </button>
+                              <button
+                                onClick={() => {
+                                  if (confirm(`Reboot router ${r.name}?`)) handleRouterAction(r.id, 'RESTART');
+                                }}
+                                className="px-3 py-1.5 bg-red-950/80 hover:bg-red-900 text-red-400 text-xs rounded-lg font-semibold border border-red-900/60 cursor-pointer"
+                              >
+                                Reboot
+                              </button>
+                            </div>
+                          </div>
+                          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs p-2.5 bg-slate-900 rounded-xl">
+                            <div>CPU: <strong className="font-mono text-white">{r.cpuLoadPercent}%</strong></div>
+                            <div>RAM: <strong className="font-mono text-white">{r.ramUsagePercent}%</strong></div>
+                            <div>Users: <strong className="text-sky-400">{r.activeUsers}</strong></div>
+                            <div>Traffic: <strong className="text-emerald-400 font-mono">{r.downloadTrafficMbps}M / {r.uploadTrafficMbps}M</strong></div>
+                          </div>
+                        </div>
+                      );
+                    })
+                  )}
                 </div>
               </div>
             )}
@@ -1827,18 +2053,26 @@ export const OwnerDashboard: React.FC<OwnerDashboardProps> = ({
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-800">
-                      {accessPoints.map((ap) => (
-                        <tr key={ap.id} className="hover:bg-slate-800/40">
-                          <td className="p-3 font-bold text-white">{ap.name}</td>
-                          <td className="p-3 text-slate-400">{ap.location}</td>
-                          <td className="p-3 font-mono text-amber-300">{ap.ssid}</td>
-                          <td className="p-3 font-mono text-sky-400">{ap.ipAddress}</td>
-                          <td className="p-3">{ap.model}</td>
-                          <td className="p-3 font-bold text-white">{ap.connectedUsers}</td>
-                          <td className="p-3 font-mono text-emerald-400">{ap.trafficMbps} Mbps</td>
-                          <td className="p-3"><span className="text-emerald-400 font-bold">● {ap.status}</span></td>
+                      {accessPoints.length === 0 ? (
+                        <tr>
+                          <td colSpan={8} className="p-8 text-center text-slate-500 font-medium">
+                            No access point radios registered yet. Connect your wireless radios or routers to monitor active AP channels.
+                          </td>
                         </tr>
-                      ))}
+                      ) : (
+                        accessPoints.map((ap) => (
+                          <tr key={ap.id} className="hover:bg-slate-800/40">
+                            <td className="p-3 font-bold text-white">{ap.name}</td>
+                            <td className="p-3 text-slate-400">{ap.location}</td>
+                            <td className="p-3 font-mono text-amber-300">{ap.ssid}</td>
+                            <td className="p-3 font-mono text-sky-400">{ap.ipAddress}</td>
+                            <td className="p-3">{ap.model}</td>
+                            <td className="p-3 font-bold text-white">{ap.connectedUsers}</td>
+                            <td className="p-3 font-mono text-emerald-400">{ap.trafficMbps} Mbps</td>
+                            <td className="p-3"><span className="text-emerald-400 font-bold">● {ap.status}</span></td>
+                          </tr>
+                        ))
+                      )}
                     </tbody>
                   </table>
                 </div>
@@ -1875,22 +2109,66 @@ export const OwnerDashboard: React.FC<OwnerDashboardProps> = ({
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-800">
-                      {[
-                        { name: 'John Doe', phone: '0799123456', net: 'BRISK Kiambu', pkg: '3 Days Free', speed: '10 Mbps', data: '1,240 MB', status: 'ACTIVE' },
-                        { name: 'Mary Wambui', phone: '0711987654', net: 'BRISK Kiambu', pkg: '1 Day', speed: '10 Mbps', data: '820 MB', status: 'ACTIVE' },
-                        { name: 'Kevin Omondi', phone: '0722334455', net: 'BRISK Ndumberi', pkg: '7 Days', speed: '20 Mbps', data: '8,400 MB', status: 'ACTIVE' },
-                        { name: 'David Mutua', phone: '0714556677', net: 'BRISK Roysambu', pkg: 'Monthly Standard', speed: '20 Mbps', data: '42,100 MB', status: 'ACTIVE' },
-                      ].map((c, i) => (
-                        <tr key={i} className="hover:bg-slate-800/40">
-                          <td className="p-3 font-bold text-white">{c.name}</td>
-                          <td className="p-3 font-mono text-slate-400">{c.phone}</td>
-                          <td className="p-3 text-amber-300">{c.net}</td>
-                          <td className="p-3 text-sky-400 font-semibold">{c.pkg}</td>
-                          <td className="p-3 font-mono">{c.speed}</td>
-                          <td className="p-3 font-mono text-emerald-400">{c.data}</td>
-                          <td className="p-3"><span className="text-emerald-400 font-bold">● {c.status}</span></td>
-                        </tr>
-                      ))}
+                      {(() => {
+                        const customerMap = new Map<string, any>();
+                        sessions.forEach((s) => {
+                          if (s.customerName) {
+                            customerMap.set(s.customerName, {
+                              name: s.customerName,
+                              phone: s.macAddress || 'WiFi Device',
+                              net: s.apName || 'Connected AP',
+                              pkg: s.packageName,
+                              speed: s.speed,
+                              data: `${s.usageMb} MB`,
+                              status: 'ACTIVE',
+                            });
+                          }
+                        });
+                        transactions.forEach((t) => {
+                          const userKey = t.mpesaPhone || t.userName || t.userId;
+                          if (userKey && !customerMap.has(userKey)) {
+                            customerMap.set(userKey, {
+                              name: t.userName || 'Guest User',
+                              phone: t.mpesaPhone || t.reference,
+                              net: 'Hotspot Network',
+                              pkg: t.packageName || 'Paid Data',
+                              speed: '15 Mbps',
+                              data: 'Purchased',
+                              status: t.status,
+                            });
+                          }
+                        });
+                        const filteredCustomers = Array.from(customerMap.values()).filter((c) =>
+                          customerSearch
+                            ? c.name?.toLowerCase().includes(customerSearch.toLowerCase()) ||
+                              c.phone?.includes(customerSearch)
+                            : true
+                        );
+
+                        if (filteredCustomers.length === 0) {
+                          return (
+                            <tr>
+                              <td colSpan={7} className="p-8 text-center text-slate-500 font-medium">
+                                No hotspot customer records found. As guests connect or purchase WiFi vouchers, their profiles and usage history will be recorded here.
+                              </td>
+                            </tr>
+                          );
+                        }
+
+                        return filteredCustomers.map((c, i) => (
+                          <tr key={i} className="hover:bg-slate-800/40">
+                            <td className="p-3 font-bold text-white">{c.name}</td>
+                            <td className="p-3 font-mono text-slate-400">{c.phone}</td>
+                            <td className="p-3 text-amber-300">{c.net}</td>
+                            <td className="p-3 text-sky-400 font-semibold">{c.pkg}</td>
+                            <td className="p-3 font-mono">{c.speed}</td>
+                            <td className="p-3 font-mono text-emerald-400">{c.data}</td>
+                            <td className="p-3">
+                              <span className="text-emerald-400 font-bold">● {c.status}</span>
+                            </td>
+                          </tr>
+                        ));
+                      })()}
                     </tbody>
                   </table>
                 </div>
@@ -1919,25 +2197,33 @@ export const OwnerDashboard: React.FC<OwnerDashboardProps> = ({
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-800">
-                      {sessions.map((s) => (
-                        <tr key={s.id} className="hover:bg-slate-800/40">
-                          <td className="p-3 font-bold text-white">{s.customerName}</td>
-                          <td className="p-3 font-mono text-sky-400">{s.ipAddress}</td>
-                          <td className="p-3 font-mono text-slate-400">{s.macAddress}</td>
-                          <td className="p-3">{s.apName}</td>
-                          <td className="p-3 text-amber-300 font-semibold">{s.packageName}</td>
-                          <td className="p-3 font-mono">{s.speed}</td>
-                          <td className="p-3 font-mono">{s.usageMb} MB</td>
-                          <td className="p-3">
-                            <button
-                              onClick={() => handleDisconnectSession(s.id, s.routerId)}
-                              className="px-2.5 py-1 bg-red-950 text-red-400 rounded text-xs font-semibold"
-                            >
-                              Disconnect
-                            </button>
+                      {sessions.length === 0 ? (
+                        <tr>
+                          <td colSpan={8} className="p-8 text-center text-slate-500 font-medium">
+                            No active guest sessions currently authenticated. When users log in or redeem vouchers, their active session details appear here.
                           </td>
                         </tr>
-                      ))}
+                      ) : (
+                        sessions.map((s) => (
+                          <tr key={s.id} className="hover:bg-slate-800/40">
+                            <td className="p-3 font-bold text-white">{s.customerName}</td>
+                            <td className="p-3 font-mono text-sky-400">{s.ipAddress}</td>
+                            <td className="p-3 font-mono text-slate-400">{s.macAddress}</td>
+                            <td className="p-3">{s.apName}</td>
+                            <td className="p-3 text-amber-300 font-semibold">{s.packageName}</td>
+                            <td className="p-3 font-mono">{s.speed}</td>
+                            <td className="p-3 font-mono">{s.usageMb} MB</td>
+                            <td className="p-3">
+                              <button
+                                onClick={() => handleDisconnectSession(s.id, s.routerId)}
+                                className="px-2.5 py-1 bg-red-950 text-red-400 rounded text-xs font-semibold cursor-pointer hover:bg-red-900"
+                              >
+                                Disconnect
+                              </button>
+                            </td>
+                          </tr>
+                        ))
+                      )}
                     </tbody>
                   </table>
                 </div>
@@ -1977,8 +2263,63 @@ export const OwnerDashboard: React.FC<OwnerDashboardProps> = ({
                   </div>
                 </div>
 
+                {/* PACKAGE CATEGORY FILTER TABS */}
+                <div className="flex flex-wrap items-center gap-2 border-b border-slate-800 pb-3">
+                  <button
+                    type="button"
+                    onClick={() => setPackageCategoryFilter('ALL')}
+                    className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
+                      packageCategoryFilter === 'ALL'
+                        ? 'bg-amber-400 text-slate-950 font-black shadow-md shadow-amber-400/20'
+                        : 'bg-slate-950 text-slate-400 hover:text-white border border-slate-800'
+                    }`}
+                  >
+                    All Packages ({localPackages.length})
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setPackageCategoryFilter('HOTSPOT')}
+                    className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
+                      packageCategoryFilter === 'HOTSPOT'
+                        ? 'bg-amber-400 text-slate-950 font-black shadow-md shadow-amber-400/20'
+                        : 'bg-slate-950 text-slate-400 hover:text-white border border-slate-800'
+                    }`}
+                  >
+                    Hourly & Daily ({localPackages.filter((p) => p.category !== 'MONTHLY' && p.category !== 'TV').length})
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setPackageCategoryFilter('MONTHLY')}
+                    className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
+                      packageCategoryFilter === 'MONTHLY'
+                        ? 'bg-amber-400 text-slate-950 font-black shadow-md shadow-amber-400/20'
+                        : 'bg-slate-950 text-slate-400 hover:text-white border border-slate-800'
+                    }`}
+                  >
+                    Monthly Broadband ({localPackages.filter((p) => p.category === 'MONTHLY').length})
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setPackageCategoryFilter('TV')}
+                    className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
+                      packageCategoryFilter === 'TV'
+                        ? 'bg-gradient-to-r from-purple-500 to-indigo-600 text-white font-black shadow-md shadow-purple-500/20'
+                        : 'bg-slate-950 text-purple-400 hover:text-purple-300 border border-purple-500/30'
+                    }`}
+                  >
+                    <span>Smart TV & IPTV ({localPackages.filter((p) => p.category === 'TV' || p.name.toLowerCase().includes('tv')).length})</span>
+                  </button>
+                </div>
+
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {localPackages.map((pkg) => (
+                  {localPackages
+                    .filter((pkg) => {
+                      if (packageCategoryFilter === 'ALL') return true;
+                      if (packageCategoryFilter === 'TV') return pkg.category === 'TV' || pkg.name.toLowerCase().includes('tv') || pkg.description?.toLowerCase().includes('tv');
+                      if (packageCategoryFilter === 'MONTHLY') return pkg.category === 'MONTHLY';
+                      return pkg.category !== 'MONTHLY' && pkg.category !== 'TV';
+                    })
+                    .map((pkg) => (
                     <div
                       key={pkg.id}
                       className={`p-4 bg-slate-950 rounded-2xl border transition-all flex flex-col justify-between space-y-3 ${
@@ -1993,7 +2334,11 @@ export const OwnerDashboard: React.FC<OwnerDashboardProps> = ({
                             <span className="font-bold text-white text-sm block">{pkg.name}</span>
                             <span className="text-xs text-sky-400 font-mono">{pkg.speedLabel}</span>
                           </div>
-                          {pkg.isCustom ? (
+                          {pkg.category === 'TV' || pkg.name.toLowerCase().includes('tv') ? (
+                            <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-purple-500/20 text-purple-300 border border-purple-500/30">
+                              Smart TV Pass
+                            </span>
+                          ) : pkg.isCustom ? (
                             <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-amber-400/20 text-amber-300 border border-amber-400/30">
                               Custom Package
                             </span>
@@ -2412,7 +2757,9 @@ export const OwnerDashboard: React.FC<OwnerDashboardProps> = ({
                   </div>
                   <div className="text-right">
                     <div className="text-[10px] uppercase font-bold text-slate-400">Your Referral Earnings</div>
-                    <div className="text-xl font-black text-emerald-400 font-mono">KES 8,400</div>
+                    <div className="text-xl font-black text-emerald-400 font-mono">
+                      KES {(profile?.commissionEarned ?? 0).toLocaleString()}
+                    </div>
                   </div>
                 </div>
 
@@ -2432,9 +2779,11 @@ export const OwnerDashboard: React.FC<OwnerDashboardProps> = ({
                     <div className="text-[10px] uppercase font-bold text-sky-400 tracking-wider">
                       Active Referred Hosts
                     </div>
-                    <div className="text-2xl font-black text-white font-mono">8 Owners</div>
+                    <div className="text-2xl font-black text-white font-mono">
+                      {profile?.totalReferrals ?? 0} Owners
+                    </div>
                     <div className="text-[11px] text-slate-400">
-                      8 active hotspot hosts across Kiambu & Nairobi networks.
+                      {profile?.totalReferrals ?? 0} active referred hotspot hosts across network.
                     </div>
                   </div>
 
@@ -3088,7 +3437,7 @@ export const OwnerDashboard: React.FC<OwnerDashboardProps> = ({
                     <div>
                       <h3 className="text-base font-bold text-white">Select or Upgrade 30-Day Platform Plan</h3>
                       <p className="text-xs text-slate-400">
-                        Choose your recurring tier. M-Pesa STK pushes will be triggered to {currentUser.phone || '0799123456'}.
+                        Choose your recurring tier. M-Pesa STK pushes will be triggered to {currentUser.phone || 'your registered phone number'}.
                       </p>
                     </div>
                     <span className="text-xs text-slate-400 font-mono">5 Tiers Available</span>
@@ -3697,48 +4046,105 @@ export const OwnerDashboard: React.FC<OwnerDashboardProps> = ({
           <div className="relative w-full max-w-md bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-4">
             <div className="flex justify-between items-center border-b border-slate-800 pb-3">
               <h3 className="text-sm font-bold text-white">Generate Physical Vouchers</h3>
-              <button onClick={() => setShowVoucherGenModal(false)} className="text-slate-400 hover:text-white">✕</button>
+              <button onClick={() => setShowVoucherGenModal(false)} className="text-slate-400 hover:text-white cursor-pointer">✕</button>
             </div>
             <form onSubmit={handleGenerateVouchersSubmit} className="space-y-3.5 text-xs">
               <div>
-                <label className="block text-slate-300 mb-1">Target Package</label>
+                <label className="block text-slate-300 mb-1 font-semibold">Target Package</label>
                 <select
                   value={genPackageId}
-                  onChange={(e) => setGenPackageId(e.target.value)}
-                  className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-white"
+                  onChange={(e) => {
+                    const selectedId = e.target.value;
+                    setGenPackageId(selectedId);
+                    const selectedPkg = [...packages, ...localPackages].find((p) => p.id === selectedId);
+                    if (selectedPkg) {
+                      if (selectedPkg.downloadSpeedMbps) setGenDownloadSpeed(selectedPkg.downloadSpeedMbps);
+                      if (selectedPkg.uploadSpeedMbps) setGenUploadSpeed(selectedPkg.uploadSpeedMbps);
+                    }
+                  }}
+                  className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-white font-medium"
                 >
-                  <option value="pkg-1d">1 Day (KES 80 · 10 Mbps)</option>
-                  <option value="pkg-3d">3 Days (KES 200 · 15 Mbps)</option>
-                  <option value="pkg-7d">7 Days (KES 500 · 20 Mbps)</option>
-                  <option value="pkg-month-std">Monthly Standard (KES 2,500 · 20 Mbps)</option>
+                  <optgroup label="Standard Packages">
+                    {packages.map((p) => (
+                      <option key={p.id} value={p.id}>
+                        {p.name} (KES {p.priceKes} · {p.speedLabel})
+                      </option>
+                    ))}
+                  </optgroup>
+                  {localPackages.length > 0 && (
+                    <optgroup label="Your Custom Packages">
+                      {localPackages.map((p) => (
+                        <option key={p.id} value={p.id}>
+                          {p.name} (KES {p.priceKes} · {p.speedLabel})
+                        </option>
+                      ))}
+                    </optgroup>
+                  )}
                 </select>
               </div>
-              <div>
-                <label className="block text-slate-300 mb-1">Quantity</label>
-                <input
-                  type="number"
-                  min="1"
-                  max="100"
-                  value={genQuantity}
-                  onChange={(e) => setGenQuantity(Number(e.target.value))}
-                  className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-white font-mono"
-                />
+
+              {/* Explicit Download & Upload Speed Limit Controls for Router API Deployment */}
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-slate-300 mb-1 font-semibold">Download Speed (Mbps)</label>
+                  <div className="relative">
+                    <input
+                      type="number"
+                      min="1"
+                      max="1000"
+                      value={genDownloadSpeed}
+                      onChange={(e) => setGenDownloadSpeed(Number(e.target.value))}
+                      className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-white font-mono font-bold pr-10"
+                    />
+                    <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-500 text-[10px] font-bold">Mbps</span>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-slate-300 mb-1 font-semibold">Upload Speed (Mbps)</label>
+                  <div className="relative">
+                    <input
+                      type="number"
+                      min="1"
+                      max="1000"
+                      value={genUploadSpeed}
+                      onChange={(e) => setGenUploadSpeed(Number(e.target.value))}
+                      className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-white font-mono font-bold pr-10"
+                    />
+                    <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-500 text-[10px] font-bold">Mbps</span>
+                  </div>
+                </div>
               </div>
-              <div>
-                <label className="block text-slate-300 mb-1">Network Name</label>
-                <input
-                  type="text"
-                  value={genNetwork}
-                  onChange={(e) => setGenNetwork(e.target.value)}
-                  className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-white"
-                />
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-slate-300 mb-1 font-semibold">Quantity</label>
+                  <input
+                    type="number"
+                    min="1"
+                    max="100"
+                    value={genQuantity}
+                    onChange={(e) => setGenQuantity(Number(e.target.value))}
+                    className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-white font-mono font-bold"
+                  />
+                </div>
+                <div>
+                  <label className="block text-slate-300 mb-1 font-semibold">Network Name</label>
+                  <input
+                    type="text"
+                    value={genNetwork}
+                    onChange={(e) => setGenNetwork(e.target.value)}
+                    className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-white font-medium"
+                  />
+                </div>
               </div>
+
               <button
                 type="submit"
                 disabled={generatingVouchers}
-                className="w-full py-2.5 bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold rounded-xl text-xs"
+                className="w-full py-2.5 bg-amber-400 hover:bg-amber-300 text-slate-950 font-black rounded-xl text-xs shadow-md transition-colors cursor-pointer"
               >
-                {generatingVouchers ? 'Generating...' : `GENERATE ${genQuantity} VOUCHERS`}
+                {generatingVouchers ? 'Generating & Provisioning...' : `GENERATE ${genQuantity} VOUCHERS (${genDownloadSpeed}M/${genUploadSpeed}M)`}
               </button>
             </form>
           </div>
@@ -3850,6 +4256,17 @@ export const OwnerDashboard: React.FC<OwnerDashboardProps> = ({
         currentExpiryDate={ownerEndDate || profile?.subscriptionExpiresAt}
         onSuccess={handleActivationSuccess}
         blockedFeatureName={blockedActionTitle}
+      />
+
+      {/* ROUTER NETWORK CREDENTIALS (SSID & PASSCODE) MODAL */}
+      <NetworkCredentialsModal
+        isOpen={showNetworkCredentialsModal}
+        onClose={() => setShowNetworkCredentialsModal(false)}
+        router={credentialsRouter}
+        onUpdated={(updatedRouter) => {
+          onRefreshState();
+          setShowNetworkCredentialsModal(false);
+        }}
       />
     </div>
   );

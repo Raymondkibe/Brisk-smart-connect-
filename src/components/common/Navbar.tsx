@@ -133,21 +133,46 @@ export const Navbar: React.FC<NavbarProps> = ({
               Contact
             </button>
 
-            {/* Authenticated user dashboard shortcut */}
+            {/* Authenticated Role Navigation Buttons */}
             {currentUser && (
               <>
                 <span className="h-4 w-[1px] bg-slate-800 mx-1" />
-                <button
-                  onClick={handleGoToUserDashboard}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-lg transition-colors cursor-pointer ${
-                    isCurrentDashboardView
-                      ? 'bg-gradient-to-r from-blue-600 to-cyan-500 text-white shadow-sm'
-                      : 'text-cyan-300 hover:bg-slate-800'
-                  }`}
-                >
-                  <LayoutDashboard className="w-3.5 h-3.5 text-cyan-400" />
-                  <span>{getDashboardLabel()}</span>
-                </button>
+                <div className="flex items-center gap-1">
+                  <button
+                    onClick={() => onViewChange('CUSTOMER')}
+                    className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-colors cursor-pointer ${
+                      currentView === 'CUSTOMER'
+                        ? 'bg-sky-600 text-white shadow-sm'
+                        : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60'
+                    }`}
+                  >
+                    Customer Portal
+                  </button>
+
+                  <button
+                    onClick={() => onViewChange('OWNER')}
+                    className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-colors cursor-pointer ${
+                      currentView === 'OWNER'
+                        ? 'bg-cyan-600 text-white shadow-sm'
+                        : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60'
+                    }`}
+                  >
+                    Router Owner
+                  </button>
+
+                  {currentUser.role === 'SUPER_ADMIN' && (
+                    <button
+                      onClick={() => onViewChange('ADMIN')}
+                      className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-colors cursor-pointer ${
+                        currentView === 'ADMIN'
+                          ? 'bg-amber-500 text-slate-950 font-black shadow-sm'
+                          : 'text-amber-400 hover:bg-slate-800/60'
+                      }`}
+                    >
+                      Admin Console
+                    </button>
+                  )}
+                </div>
               </>
             )}
           </nav>
