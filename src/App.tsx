@@ -18,6 +18,8 @@ import { ReceiptModal } from './components/common/ReceiptModal.tsx';
 import { VoucherModal } from './components/common/VoucherModal.tsx';
 import { AuthModal } from './components/auth/AuthModal.tsx';
 import { HostModal } from './components/common/HostModal.tsx';
+import { DashboardSkeleton } from './components/common/DashboardSkeleton.tsx';
+import { AuthProvider } from './context/AuthContext.tsx';
 import { api, type AppState } from './services/api.ts';
 import type {
   User,
@@ -138,7 +140,7 @@ const getInitialOwnerTab = (): OwnerPage => {
   return 'DASHBOARD';
 };
 
-export default function App() {
+function MainApp() {
   const [appState, setAppState] = useState<AppState | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -331,14 +333,9 @@ export default function App() {
 
   if (loading && !appState) {
     return (
-      <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center text-white">
-        <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-sky-500 to-amber-400 p-0.5 animate-spin">
-          <div className="w-full h-full bg-slate-950 rounded-[14px]" />
-        </div>
-        <div className="mt-4 text-sm font-bold tracking-wider text-slate-300">
-          INITIALIZING BRISK SMART CONNECT...
-        </div>
-      </div>
+      <DashboardSkeleton
+        type={currentView === 'ADMIN' ? 'ADMIN' : currentView === 'CUSTOMER' ? 'CUSTOMER' : 'OWNER'}
+      />
     );
   }
 
@@ -581,5 +578,13 @@ export default function App() {
         defaultName={currentUser?.name || ''}
       />
     </div>
+  );
+}
+
+export default function App() {
+  return (
+    <AuthProvider initialUser={null}>
+      <MainApp />
+    </AuthProvider>
   );
 }

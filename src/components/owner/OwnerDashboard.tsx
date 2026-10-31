@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { NetworkHealthIndicator } from './NetworkHealthIndicator.tsx';
 import {
   Radio,
   Wifi,
@@ -1339,44 +1340,79 @@ export const OwnerDashboard: React.FC<OwnerDashboardProps> = ({
             </div>
 
             {/* PAGE 1: /owner/dashboard */}
-            {activeTab === 'DASHBOARD' && (
-              <div className="space-y-6">
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                  <div className="p-4 bg-slate-900 border border-slate-800 rounded-2xl">
-                    <div className="text-[11px] text-slate-400">Network Status</div>
-                    <div className="text-base font-bold text-emerald-400 mt-1">● Online</div>
-                  </div>
-                  <div className="p-4 bg-slate-900 border border-slate-800 rounded-2xl">
-                    <div className="text-[11px] text-slate-400">Customers</div>
-                    <div className="text-xl font-black text-white mt-1">1,245</div>
-                  </div>
-                  <div className="p-4 bg-slate-900 border border-slate-800 rounded-2xl">
-                    <div className="text-[11px] text-slate-400">Active Users</div>
-                    <div className="text-xl font-black text-sky-400 mt-1">87</div>
-                  </div>
-                  <div className="p-4 bg-slate-900 border border-slate-800 rounded-2xl">
-                    <div className="text-[11px] text-slate-400">Routers / APs</div>
-                    <div className="text-xl font-black text-white mt-1">
-                      {routers.length} / {accessPoints.length}
+            {activeTab === 'DASHBOARD' && (() => {
+              const uniqueCustomersCount = new Set(
+                sessions.map((s) => s.customerId || s.customerName).filter(Boolean)
+              ).size;
+              const activeUsersCount = sessions.length;
+              const todayRev = transactions
+                .filter(
+                  (t) =>
+                    t.status === 'SUCCESS' &&
+                    new Date(t.createdAt).toDateString() === new Date().toDateString()
+                )
+                .reduce((acc, t) => acc + t.amountKes, 0);
+              const monthlyRev = transactions
+                .filter((t) => t.status === 'SUCCESS')
+                .reduce((acc, t) => acc + t.amountKes, 0);
+              const activeVouchersCount = vouchers.filter((v) => v.status === 'UNUSED').length;
+              const avgUptimeStr =
+                routers.length > 0
+                  ? `${((routers.filter((r) => r.status === 'ONLINE').length / routers.length) * 100).toFixed(1)}%`
+                  : '100%';
+
+              return (
+                <div className="space-y-6">
+                  {/* REAL-TIME NETWORK HEALTH INDICATOR COMPONENT */}
+                  <NetworkHealthIndicator routers={routers} onRefresh={onRefreshState} />
+
+                  {/* DYNAMIC METRIC CARDS */}
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                    <div className="p-4 bg-slate-900 border border-slate-800 rounded-2xl">
+                      <div className="text-[11px] text-slate-400">Network Status</div>
+                      <div className="text-base font-bold text-emerald-400 mt-1">
+                        {routers.length === 0
+                          ? '● Ready for Gateways'
+                          : routers.some((r) => r.status === 'ONLINE')
+                          ? '● Operational'
+                          : '● Offline Alert'}
+                      </div>
+                    </div>
+                    <div className="p-4 bg-slate-900 border border-slate-800 rounded-2xl">
+                      <div className="text-[11px] text-slate-400">Connected Customers</div>
+                      <div className="text-xl font-black text-white font-mono mt-1">{uniqueCustomersCount}</div>
+                    </div>
+                    <div className="p-4 bg-slate-900 border border-slate-800 rounded-2xl">
+                      <div className="text-[11px] text-slate-400">Active User Sessions</div>
+                      <div className="text-xl font-black text-sky-400 font-mono mt-1">{activeUsersCount}</div>
+                    </div>
+                    <div className="p-4 bg-slate-900 border border-slate-800 rounded-2xl">
+                      <div className="text-[11px] text-slate-400">Routers / APs</div>
+                      <div className="text-xl font-black text-white font-mono mt-1">
+                        {routers.length} / {accessPoints.length}
+                      </div>
+                    </div>
+                    <div className="p-4 bg-slate-900 border border-slate-800 rounded-2xl">
+                      <div className="text-[11px] text-slate-400">Today's Revenue</div>
+                      <div className="text-sm font-extrabold text-amber-400 font-mono mt-1">
+                        KES {todayRev.toLocaleString()}
+                      </div>
+                    </div>
+                    <div className="p-4 bg-slate-900 border border-slate-800 rounded-2xl">
+                      <div className="text-[11px] text-slate-400">Monthly Revenue</div>
+                      <div className="text-sm font-extrabold text-emerald-400 font-mono mt-1">
+                        KES {monthlyRev.toLocaleString()}
+                      </div>
+                    </div>
+                    <div className="p-4 bg-slate-900 border border-slate-800 rounded-2xl">
+                      <div className="text-[11px] text-slate-400">Unused Vouchers</div>
+                      <div className="text-xl font-black text-white font-mono mt-1">{activeVouchersCount}</div>
+                    </div>
+                    <div className="p-4 bg-slate-900 border border-slate-800 rounded-2xl">
+                      <div className="text-[11px] text-slate-400">Uptime Average</div>
+                      <div className="text-sm font-bold text-white font-mono mt-1">{avgUptimeStr}</div>
                     </div>
                   </div>
-                  <div className="p-4 bg-slate-900 border border-slate-800 rounded-2xl">
-                    <div className="text-[11px] text-slate-400">Today's Revenue</div>
-                    <div className="text-sm font-extrabold text-amber-400 font-mono mt-1">KES 8,450</div>
-                  </div>
-                  <div className="p-4 bg-slate-900 border border-slate-800 rounded-2xl">
-                    <div className="text-[11px] text-slate-400">Monthly Revenue</div>
-                    <div className="text-sm font-extrabold text-emerald-400 font-mono mt-1">KES 124,500</div>
-                  </div>
-                  <div className="p-4 bg-slate-900 border border-slate-800 rounded-2xl">
-                    <div className="text-[11px] text-slate-400">Active Vouchers</div>
-                    <div className="text-xl font-black text-white mt-1">340</div>
-                  </div>
-                  <div className="p-4 bg-slate-900 border border-slate-800 rounded-2xl">
-                    <div className="text-[11px] text-slate-400">Uptime Average</div>
-                    <div className="text-sm font-bold text-white mt-1">99.98%</div>
-                  </div>
-                </div>
 
                 {/* Quick controls */}
                 <div className="p-4 bg-slate-900 border border-slate-800 rounded-2xl flex flex-wrap items-center justify-between gap-4">
@@ -1524,7 +1560,8 @@ export const OwnerDashboard: React.FC<OwnerDashboardProps> = ({
                   onRefreshParent={onRefreshState}
                 />
               </div>
-            )}
+            );
+          })()}
 
             {/* PAGE 2: /owner/network (Network Topology) */}
             {activeTab === 'NETWORK' && (

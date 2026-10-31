@@ -3917,6 +3917,49 @@ app.post('/api/owner/packages', (req, res) => {
   });
 });
 
+app.put('/api/owner/packages/:packageId', (req, res) => {
+  const { packageId } = req.params;
+  const updates = req.body;
+  const ownerId = updates.tenantId || 'usr-owner-01';
+
+  let list = db.customPackages.get(ownerId);
+  if (!list) {
+    list = [];
+    db.customPackages.set(ownerId, list);
+  }
+
+  const index = list.findIndex((p) => p.id === packageId);
+  let updatedPkg: WifiPackage;
+
+  if (index >= 0) {
+    updatedPkg = {
+      ...list[index],
+      ...updates,
+      id: packageId,
+      speedLabel: updates.speedLabel || `${updates.downloadSpeedMbps || list[index].downloadSpeedMbps || 10} Mbps`,
+      priceKes: Number(updates.priceKes || list[index].priceKes),
+      durationHours: Number(updates.durationHours || list[index].durationHours),
+    };
+    list[index] = updatedPkg;
+  } else {
+    updatedPkg = {
+      ...updates,
+      id: packageId,
+      isCustom: true,
+      speedLabel: updates.speedLabel || `${updates.downloadSpeedMbps || 10} Mbps`,
+      priceKes: Number(updates.priceKes || 50),
+      durationHours: Number(updates.durationHours || 24),
+    };
+    list.unshift(updatedPkg);
+  }
+
+  return res.json({
+    success: true,
+    message: `Package "${updatedPkg.name}" updated successfully!`,
+    package: updatedPkg,
+  });
+});
+
 app.delete('/api/owner/packages/:packageId', (req, res) => {
   const { packageId } = req.params;
   let deletedName = '';

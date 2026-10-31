@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Wifi,
   Smartphone,
@@ -111,6 +111,40 @@ export const CustomerDashboard: React.FC<CustomerDashboardProps> = ({
   const isPackageExpired =
     simulatedExpired ||
     isWifiPackageExpired(profile?.currentPackage);
+
+  // Real-time live countdown timer for active WiFi session
+  const [liveCountdownStr, setLiveCountdownStr] = useState<string>('00:00:00');
+
+  useEffect(() => {
+    const calcTimer = () => {
+      if (!profile?.currentPackage?.expiresAt) {
+        setLiveCountdownStr('No Active Session');
+        return;
+      }
+      const expiresTime = new Date(profile.currentPackage.expiresAt).getTime();
+      const diffMs = expiresTime - Date.now();
+
+      if (diffMs <= 0) {
+        setLiveCountdownStr('00:00:00 (Expired)');
+        return;
+      }
+
+      const totalSec = Math.floor(diffMs / 1000);
+      const days = Math.floor(totalSec / 86400);
+      const hours = Math.floor((totalSec % 86400) / 3600);
+      const minutes = Math.floor((totalSec % 3600) / 60);
+      const seconds = totalSec % 60;
+
+      let formatted = '';
+      if (days > 0) formatted += `${days}d `;
+      formatted += `${String(hours).padStart(2, '0')}h ${String(minutes).padStart(2, '0')}m ${String(seconds).padStart(2, '0')}s`;
+      setLiveCountdownStr(formatted);
+    };
+
+    calcTimer();
+    const interval = setInterval(calcTimer, 1000);
+    return () => clearInterval(interval);
+  }, [profile?.currentPackage?.expiresAt]);
 
   // PPPoE Password visibility toggle
   const [showPppoePass, setShowPppoePass] = useState(false);
@@ -472,50 +506,101 @@ export const CustomerDashboard: React.FC<CustomerDashboardProps> = ({
               <div className="p-5 bg-slate-900 border border-slate-800 rounded-2xl space-y-2">
                 <div className="text-xs text-slate-400 font-medium">Current Package</div>
                 <div className={`text-lg font-black ${isPackageExpired ? 'text-rose-400 line-through' : 'text-amber-400'}`}>
-                  {profile?.currentPackage?.packageName || '3 Days Free'}
+                  {profile?.currentPackage?.packageName || (profile?.currentPackage ? 'Active Package' : 'No Active Package')}
                 </div>
                 <div className="text-xs text-slate-400">
                   Speed: <span className={isPackageExpired ? 'text-rose-400 font-medium' : 'text-sky-400 font-medium'}>{isPackageExpired ? '0 Mbps (Blocked)' : (profile?.currentSpeed || '10 Mbps')}</span>
                 </div>
               </div>
 
-              {/* Remaining Time */}
+              {/* Real-time Session Countdown Timer */}
               <div className="p-5 bg-slate-900 border border-slate-800 rounded-2xl space-y-2">
-                <div className="text-xs text-slate-400 font-medium">Remaining Time</div>
+                <div className="flex items-center justify-between text-xs text-slate-400 font-medium">
+                  <span>Remaining Session Time</span>
+                  <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+                </div>
                 <div className="text-lg font-bold text-white font-mono flex items-center gap-1.5">
-                  <Clock className={`w-4 h-4 ${isPackageExpired ? 'text-rose-400' : 'text-amber-400'}`} />
-                  <span className={isPackageExpired ? 'text-rose-400 text-sm font-bold' : ''}>
-                    {isPackageExpired ? '00:00:00 (Expired)' : '2d 14h 32m'}
+                  <Clock className={`w-4 h-4 ${isPackageExpired ? 'text-rose-400' : 'text-amber-400 animate-spin-slow'}`} />
+                  <span className={isPackageExpired ? 'text-rose-400 text-sm font-bold' : 'text-amber-300'}>
+                    {isPackageExpired ? '00:00:00 (Expired)' : liveCountdownStr}
                   </span>
                 </div>
                 <div className="text-[11px] text-slate-400">
                   Expires:{' '}
-                  <span className={isPackageExpired ? 'text-rose-300 font-semibold' : 'text-slate-300'}>
-                    {isPackageExpired ? 'Expired — Renewal required' : (profile?.currentPackage?.expiresAt
+                  <span className={isPackageExpired ? 'text-rose-300 font-semibold' : 'text-slate-300 font-mono'}>
+                    {isPackageExpired
+                      ? 'Expired — Renewal required'
+                      : profile?.currentPackage?.expiresAt
                       ? new Date(profile.currentPackage.expiresAt).toLocaleDateString('en-KE', {
                           month: 'short',
                           day: 'numeric',
                           hour: '2-digit',
                           minute: '2-digit',
                         })
-                      : '01 Oct, 04:56')}
+                      : 'No Active Expiry'}
                   </span>
                 </div>
               </div>
 
-              {/* Referral Balance */}
+              {/* Referral Balance Card */}
               <div className="p-5 bg-slate-900 border border-slate-800 rounded-2xl space-y-2">
-                <div className="text-xs text-slate-400 font-medium">Available Commission</div>
+                <div className="text-xs text-slate-400 font-medium">Available Referral Earnings</div>
                 <div className="text-lg font-extrabold text-emerald-400 font-mono">
-                  KES {(profile?.availableCommission ?? 1200).toLocaleString()}
+                  KES {(profile?.availableCommission ?? 0).toLocaleString()}
                 </div>
                 <button
                   onClick={() => setActiveTab('REFERRALS')}
                   className="text-xs text-sky-400 hover:text-sky-300 font-medium inline-flex items-center gap-1"
                 >
-                  <span>Request M-Pesa Payout</span>
+                  <span>View Referral Network</span>
                   <ChevronRight className="w-3.5 h-3.5" />
                 </button>
+              </div>
+            </div>
+
+            {/* REFERRAL PERFORMANCE MINI CARDS LAYOUT */}
+            <div className="p-5 bg-[#0b132b] border border-slate-800/80 rounded-2xl space-y-3">
+              <div className="flex items-center justify-between">
+                <h3 className="text-xs font-bold text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
+                  <Share2 className="w-3.5 h-3.5 text-amber-400" />
+                  <span>Referral Performance Summary</span>
+                </h3>
+                <button
+                  onClick={() => setActiveTab('REFERRALS')}
+                  className="text-[11px] text-amber-400 hover:text-amber-300 font-semibold flex items-center gap-1"
+                >
+                  <span>Manage Link & Payouts</span>
+                  <ChevronRight className="w-3 h-3" />
+                </button>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                {/* Mini Card 1: Successful Referrals */}
+                <div className="p-3.5 bg-slate-900/90 border border-slate-800 rounded-xl space-y-1">
+                  <div className="text-[10px] text-slate-400 uppercase font-semibold">Successful Referrals</div>
+                  <div className="text-xl font-black text-white font-mono">
+                    {profile?.totalReferrals ?? commissions.filter((c) => c.status === 'PAID').length}
+                  </div>
+                  <div className="text-[10px] text-emerald-400">● Active Referred Friends</div>
+                </div>
+
+                {/* Mini Card 2: Pending Commissions */}
+                <div className="p-3.5 bg-slate-900/90 border border-slate-800 rounded-xl space-y-1">
+                  <div className="text-[10px] text-slate-400 uppercase font-semibold">Pending Commissions</div>
+                  <div className="text-xl font-black text-amber-400 font-mono">
+                    KES {commissions.filter((c) => c.status === 'EARNED').reduce((s, c) => s + c.commissionKes, 0).toLocaleString()}
+                  </div>
+                  <div className="text-[10px] text-amber-400/80">Awaiting payout processing</div>
+                </div>
+
+                {/* Mini Card 3: Total Lifetime Earned */}
+                <div className="p-3.5 bg-slate-900/90 border border-slate-800 rounded-xl space-y-1">
+                  <div className="text-[10px] text-slate-400 uppercase font-semibold">Lifetime Commission</div>
+                  <div className="text-xl font-black text-emerald-400 font-mono">
+                    KES {(profile?.commissionEarned ?? 0).toLocaleString()}
+                  </div>
+                  <div className="text-[10px] text-sky-400">10% cash commission rate</div>
+                </div>
               </div>
             </div>
 
